@@ -1,5 +1,7 @@
 package dev2dev.textclient;
 
+import gov.nist.javax.sip.header.From;
+
 import javax.sip.SipFactory;
 import javax.sip.SipProvider;
 import javax.sip.address.*;
@@ -88,9 +90,18 @@ public class SipRegister {
     }
 
     public boolean processRequest(Request request) {
-        // parsing received request from clients
-        // return true if client accepted and false if he does not
-        return false;
+        From sender = (From) request.getHeader(From.NAME);
+        String client = sender.getName();
+        // TODO, check console logs
+        System.out.println("Sipregister: client: " + client);
+        System.out.println("Sipregister: client: " + sender.getAddress().getDisplayName());
+        if (isRegister(client)) {
+            return false;
+        }
+        else {
+            childs.put(client, sender.getAddress().getDisplayName());
+            return true;
+        }
     }
 
     public boolean isRegister(String client) {
