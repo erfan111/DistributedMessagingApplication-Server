@@ -1,5 +1,6 @@
 package dev2dev.textclient;
 
+import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.ViaList;
 import gov.nist.javax.sip.parser.ViaParser;
 
@@ -63,22 +64,13 @@ public class SipLayer implements SipListener {
 
 	register.put("client1", "127.0.1.1:5061");
 	register.put("client2", "127.0.1.1:5062");
+
 	setUsername(username);
+
 	sipFactory = SipFactory.getInstance();
 	sipFactory.setPathName("gov.nist");
-	Properties properties = new Properties();
-	properties.setProperty("javax.sip.STACK_NAME", "TextClient");
-	properties.setProperty("javax.sip.IP_ADDRESS", ip);
 
-	//DEBUGGING: Information will go to files 
-	//textclient.log and textclientdebug.log
-	properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
-	properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-		"textclient.txt");
-	properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-		"textclientdebug.log");
-
-	sipStack = sipFactory.createSipStack(properties);
+	sipStack = createSipStack(ip);
 	headerFactory = sipFactory.createHeaderFactory();
 	addressFactory = sipFactory.createAddressFactory();
 	messageFactory = sipFactory.createMessageFactory();
@@ -97,23 +89,17 @@ public class SipLayer implements SipListener {
      */
     public void sendMessage(Request req, FromHeader Sender, String to, String message) throws ParseException,
 	    InvalidArgumentException, SipException {
-
-	SipURI from = addressFactory.createSipURI(getUsername(), getHost()
-		+ ":" + getPort());
-	Address fromNameAddress = addressFactory.createAddress(from);
-	fromNameAddress.setDisplayName(getUsername());
+//
+//	SipURI from = addressFactory.createSipURI(getUsername(), getHost()
+//		+ ":" + getPort());
+//	Address fromNameAddress = addressFactory.createAddress(from);
+//	fromNameAddress.setDisplayName(getUsername());
 //	FromHeader fromHeader = headerFactory.createFromHeader(fromNameAddress,
 //		"textclientv1.0");
 
-	String username = to.substring(to.indexOf(":") + 1, to.indexOf("@"));
-	String address = to.substring(to.indexOf("@") + 1);
+	ToHeader toHeader = Helper.createToHeader(addressFactory, headerFactory, to);
 
-	SipURI toAddress = addressFactory.createSipURI(username, address);
-	Address toNameAddress = addressFactory.createAddress(toAddress);
-	toNameAddress.setDisplayName(username);
-	ToHeader toHeader = headerFactory.createToHeader(toNameAddress, null);
-
-	SipURI requestURI = addressFactory.createSipURI(username, address);
+	SipURI requestURI = addressFactory.createSipURI(username, Helper.getAddressFromSipUri(to));
 	requestURI.setTransportParam("udp");
 
 	ListIterator viaListIter = req.getHeaders("Via");
@@ -253,7 +239,7 @@ public class SipLayer implements SipListener {
 
 	public void createResponse(Request req, int response_status_code)
 	{
-		FromHeader from = (FromHeader) req.getHeader("From");
+		FromHeader from = (FromHeader) req.getHeader(FromHeader.NAME);
 //		messageProcessor.processMessage(from.getAddress().toString(),
 //				new String(req.getRawContent()));
 		Response response = null;
@@ -302,7 +288,6 @@ public class SipLayer implements SipListener {
     }
 
     public String getHost() {
-	int port = sipProvider.getListeningPoint().getPort();
 	String host = sipStack.getIPAddress();
 	return host;
     }
@@ -328,4 +313,16 @@ public class SipLayer implements SipListener {
 	messageProcessor = newMessageProcessor;
     }
 
+	private SipStack createSipStack(String ip) throws PeerUnavailableException {
+
+		Properties properties = new Properties();
+
+		properties.setProperty("javax.sip.STACK_NAME", "TextClient");
+		properties.setProperty("javax.sip.IP_ADDRESS", ip);
+		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
+		properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "textclient.txt");
+		properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "textclientdebug.log");
+
+		return sipFactory.createSipStack(properties);
+	}
 }
