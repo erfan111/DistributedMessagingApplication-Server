@@ -1,14 +1,12 @@
 package dev2dev.textclient;
 
 import gov.nist.javax.sip.header.To;
-
 import java.text.ParseException;
 import java.util.*;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
-import javax.sip.ObjectInUseException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
@@ -20,7 +18,6 @@ import javax.sip.SipProvider;
 import javax.sip.SipStack;
 import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
-import javax.sip.TransportNotSupportedException;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
@@ -160,10 +157,7 @@ public class SipLayer implements SipListener {
 
 
     public void createResponse(Request req, int response_status_code) {
-        FromHeader from = (FromHeader) req.getHeader(FromHeader.NAME);
-//		messageProcessor.processMessage(from.getAddress().toString(),
-//				new String(req.getRawContent()));
-        Response response = null;
+        Response response ;
 
         try {
             response = messageFactory.createResponse(response_status_code, req);
@@ -171,13 +165,11 @@ public class SipLayer implements SipListener {
             toHeader.setTag("888"); //This is mandatory as per the spec.
             ServerTransaction st = sipProvider.getNewServerTransaction(req);
             st.sendResponse(response);
-            System.out.println("sent trying");
         } catch (Throwable e) {
             e.printStackTrace();
             messageProcessor.processError("Can't send OK reply.");
         }
     }
-
 
     // ********************************************* SipListener Interface *********************************************
 
@@ -185,6 +177,7 @@ public class SipLayer implements SipListener {
      * This method is called by the SIP stack when a response arrives.
      */
     public void processResponse(ResponseEvent evt) {
+        //when send message we get response of send Request
         Response response = evt.getResponse();
         int status = response.getStatusCode();
 
@@ -192,6 +185,9 @@ public class SipLayer implements SipListener {
             messageProcessor.processInfo("--Sent");
             /////////////////
             Request req = storedEvent.getRequest();
+//            if (req.equals(evt.getClientTransaction().getRequest()))
+//            {
+//            }
 
             String method = req.getMethod();
             if (!method.equals("MESSAGE")) { //bad request type.
@@ -202,7 +198,7 @@ public class SipLayer implements SipListener {
             FromHeader from = (FromHeader) req.getHeader(FromHeader.NAME);
             messageProcessor.processMessage(from.getAddress().toString(),
                     new String(req.getRawContent()));
-            Response response2 ;
+            Response response2;
             System.out.println("before try");
             try { //Reply with OK
                 System.out.println("generating response");
@@ -229,20 +225,20 @@ public class SipLayer implements SipListener {
      * This method is called by the SIP stack when a new request arrives.
      */
     public void processRequest(RequestEvent evt) {
+        //when anyone sends message to me
         storedEvent = evt;
         Request req = evt.getRequest();
 
         // Getting the Sender and Receiver name
         String method = req.getMethod();
-        String Receiver = ((To) req.getHeader(To.NAME)).getAddress().getDisplayName();
-        FromHeader Sender = (FromHeader) evt.getRequest().getHeader("From");
+        String Receiver = ((ToHeader) req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
+        FromHeader Sender = (FromHeader) req.getHeader(FromHeader.NAME);
 
         if (method.equals("MESSAGE")) {
             try {
                 // CHECK IF THE MESSAGE HAS COME FROM THE SERVER
-                ListIterator viaListIter = req.getHeaders("Via");
+                ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
                 ViaHeader Via;
-                ArrayList viaHeader = new ArrayList();
                 String Host;
                 Boolean from_me = false;
                 Boolean from_other_server = false;
@@ -305,20 +301,16 @@ public class SipLayer implements SipListener {
                     }
                 }
 
-
 //				createResponse(req, 100);
-
 
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            System.out.println("msg");
 
         } else { //bad request type.
-            messageProcessor.processError("Bad request type: " + method);
+            createResponse(req, 400);
             return;
         }
-        //createResponse(req, 500);
 
     }
 

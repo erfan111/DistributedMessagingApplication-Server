@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class serverManagement {
     private ArrayList<serverAddressItem> servers = new ArrayList<>();
 
-    public serverManagement () {
+    public serverManagement() {
     }
 
     public boolean addServer(String ip, int port) {
