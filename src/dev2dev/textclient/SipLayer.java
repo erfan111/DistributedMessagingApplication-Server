@@ -199,10 +199,10 @@ public class SipLayer implements SipListener {
                 return;
             }
 
-            FromHeader from = (FromHeader) req.getHeader("From");
+            FromHeader from = (FromHeader) req.getHeader(FromHeader.NAME);
             messageProcessor.processMessage(from.getAddress().toString(),
                     new String(req.getRawContent()));
-            Response response2 = null;
+            Response response2 ;
             System.out.println("before try");
             try { //Reply with OK
                 System.out.println("generating response");

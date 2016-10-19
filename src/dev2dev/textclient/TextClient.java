@@ -112,7 +112,7 @@ public class TextClient
 
         getContentPane().setLayout(null);
 
-        setTitle("Server");
+        setTitle(sipLayer.getUsername());
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent evt) {
                 System.exit(0);
