@@ -11,6 +11,7 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 
 /**
  * Created by hooman on 10/13/16.
@@ -89,17 +90,17 @@ public class SipRegister {
         }
     }
 
-    public boolean processRequest(Request request) {
+    public static boolean processRequest(Request request, Hashtable hm) {
         From sender = (From) request.getHeader(From.NAME);
-        String client = sender.getName();
+        String client = sender.getAddress().getDisplayName();
         // TODO, check console logs
         System.out.println("Sipregister: client: " + client);
-        System.out.println("Sipregister: client: " + sender.getAddress().getDisplayName());
-        if (isRegister(client)) {
+        System.out.println("Sipregister: client: " + sender.getHostPort());
+        if (hm.containsKey(client)) {
             return false;
         }
         else {
-            childs.put(client, sender.getAddress().getDisplayName());
+            hm.put(client, sender.getHostPort().toString());
             return true;
         }
     }
