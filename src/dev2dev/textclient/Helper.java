@@ -8,6 +8,7 @@ import javax.sip.header.HeaderFactory;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
 
+@SuppressWarnings("unused")
 public class Helper {
 
     // ************************************************ Sip Uri Helper *************************************************

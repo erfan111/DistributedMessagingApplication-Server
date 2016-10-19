@@ -13,9 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-/**
- * Created by hooman on 10/13/16.
- */
 public class SipRegister {
 
     private HashMap<String, String> childs = new HashMap<>();
@@ -52,7 +49,7 @@ public class SipRegister {
         this.port = port;
     }
 
-    public void sendRequest () throws Exception {
+    public void sendRequest() throws Exception {
         callIdHeader = sipProvider.getNewCallId();
         cSeqHeader = headerFactory.createCSeqHeader(cseq, "REGISTER");
         fromAddress = addressFactory.createAddress("sip:" + username + '@' + server);
@@ -76,7 +73,7 @@ public class SipRegister {
         sipProvider.sendRequest(request);
     }
 
-    public boolean processResponse (Response response) {
+    public boolean processResponse(Response response) {
         switch (response.getStatusCode()) {
             case Response.ACCEPTED:
             case Response.OK:
@@ -98,8 +95,7 @@ public class SipRegister {
         System.out.println("Sipregister: client: " + sender.getHostPort());
         if (hm.containsKey(client)) {
             return false;
-        }
-        else {
+        } else {
             hm.put(client, sender.getHostPort().toString());
             return true;
         }
