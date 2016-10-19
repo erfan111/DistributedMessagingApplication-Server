@@ -32,8 +32,8 @@ public class Helper {
         return createToHeader(af, hf, getAddressFromSipUri(to), getAddressFromSipUri(to));
     }
 
-    public static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String to) throws ParseException {
-        return createFromHeader(af, hf, getAddressFromSipUri(to), getAddressFromSipUri(to));
+    public static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String from) throws ParseException {
+        return createFromHeader(af, hf, getAddressFromSipUri(from), getAddressFromSipUri(from));
     }
 
     public static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String username, String address)

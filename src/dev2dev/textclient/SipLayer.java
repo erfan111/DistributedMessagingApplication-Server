@@ -1,6 +1,7 @@
 package dev2dev.textclient;
 
 import gov.nist.javax.sip.header.To;
+
 import java.text.ParseException;
 import java.util.*;
 import javax.sip.DialogTerminatedEvent;
@@ -112,32 +113,28 @@ public class SipLayer implements SipListener {
      */
     public void sendMessage(Request req, FromHeader Sender, String to, String message) throws ParseException,
             InvalidArgumentException, SipException {
-//	SipURI from = addressFactory.createSipURI(getUsername(), getHost()
-//		+ ":" + getPort());
-//	Address fromNameAddress = addressFactory.createAddress(from);
-//	fromNameAddress.setDisplayName(getUsername());
+
         System.out.println("SendMessage called with: " + to + message);
+
+        //prepare data and header that needs for sending Message/Request
 
         ToHeader toHeader = Helper.createToHeader(addressFactory, headerFactory, to);
 
-        SipURI requestURI = addressFactory.createSipURI(username, Helper.getAddressFromSipUri(to));
+        SipURI requestURI = addressFactory.createSipURI(getUsername(), Helper.getAddressFromSipUri(to));
         requestURI.setTransportParam("udp");
 
         ListIterator viaListIter = req.getHeaders("Via");
-        ViaHeader Via;
         ArrayList viaHeaders = new ArrayList();
 
         while (viaListIter.hasNext()) {
-            Via = (ViaHeader) viaListIter.next();
+            ViaHeader Via = (ViaHeader) viaListIter.next();
             System.out.println(Via.getHost() + " " + Via.getMAddr() + " " + Via.getPort());
-            ViaHeader myviaHeader = headerFactory.createViaHeader(Via.getHost(),
+            ViaHeader viaHeader = headerFactory.createViaHeader(Via.getHost(),
                     Via.getPort(), "udp", "branch1");
-            viaHeaders.add(myviaHeader);
+            viaHeaders.add(viaHeader);
         }
-        ViaHeader myviaHeader = headerFactory.createViaHeader(getHost(),
-                getPort(), "udp", "branch1");
-        viaHeaders.add(myviaHeader);
 
+        viaHeaders.add(getSelfViaHeader());
 
         CallIdHeader callIdHeader = sipProvider.getNewCallId();
 
@@ -147,22 +144,15 @@ public class SipLayer implements SipListener {
         MaxForwardsHeader maxForwards = headerFactory
                 .createMaxForwardsHeader(70);
 
-        Request request = messageFactory.createRequest(requestURI,
-                Request.MESSAGE, callIdHeader, cSeqHeader, Sender,        // **
-                toHeader, viaHeaders, maxForwards);
-
-        SipURI contactURI = addressFactory.createSipURI(getUsername(),
-                getHost());
-        contactURI.setPort(getPort());
-        Address contactAddress = addressFactory.createAddress(contactURI);
-        contactAddress.setDisplayName(getUsername());
-        ContactHeader contactHeader = headerFactory
-                .createContactHeader(contactAddress);
-        request.addHeader(contactHeader);
-
         ContentTypeHeader contentTypeHeader = headerFactory
                 .createContentTypeHeader("text", "plain");
-        request.setContent(message, contentTypeHeader);
+
+        Request request = messageFactory.createRequest(requestURI,
+                Request.MESSAGE, callIdHeader, cSeqHeader, Sender,
+                toHeader, viaHeaders, maxForwards, contentTypeHeader,
+                message);
+
+        request.addHeader(getSelfContactHeader());
 
         System.out.println("sent");
         sipProvider.sendRequest(request);
@@ -364,6 +354,20 @@ public class SipLayer implements SipListener {
     }
 
     // ************************************************ Get/Set methods ************************************************
+
+    public String getAddress() {
+        return getHost() + ":" + getPort();
+    }
+
+    private ContactHeader getSelfContactHeader() throws ParseException {
+        Address contactAddress = Helper.createSipAddress(addressFactory, getUsername(), getAddress());
+        return headerFactory.createContactHeader(contactAddress);
+    }
+
+    private ViaHeader getSelfViaHeader() throws ParseException, InvalidArgumentException {
+        ViaHeader viaHeader = headerFactory.createViaHeader(getHost(), getPort(), "udp", "branch1");
+        return viaHeader;
+    }
 
     public String getHost() {
         String host = sipStack.getIPAddress();
