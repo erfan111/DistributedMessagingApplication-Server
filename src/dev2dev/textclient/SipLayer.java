@@ -56,8 +56,8 @@ public class SipLayer implements SipListener {
         setUsername(username);
         initSip(ip, port);
 
-        register.put("client1", "127.0.1.1:5061");
-        register.put("client2", "127.0.1.1:5062");
+//        register.put("client1", "127.0.1.1:5061");
+//        register.put("client2", "127.0.1.1:5062");
 
         if (servers.containsKey(getUsername())) {
 
@@ -115,6 +115,7 @@ public class SipLayer implements SipListener {
 
         //prepare data and header that needs for sending Message/Request
 
+        System.out.println(to);
         ToHeader toHeader = Helper.createToHeader(addressFactory, headerFactory, to);
 
         SipURI requestURI = addressFactory.createSipURI(getUsername(), Helper.getAddressFromSipUri(to));
@@ -231,7 +232,7 @@ public class SipLayer implements SipListener {
 
         // Getting the Sender and Receiver name
         String method = req.getMethod();
-        String Receiver = ((ToHeader) req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
+        String Receiver = ((To) req.getHeader(To.NAME)).getAddress().getDisplayName();
         FromHeader Sender = (FromHeader) req.getHeader(FromHeader.NAME);
 
         if (method.equals("MESSAGE")) {
@@ -267,7 +268,7 @@ public class SipLayer implements SipListener {
                     if (!from_me && register.containsKey(Receiver)) {
 //						String fucker = register.get(Receiver);
                         System.out.println("I have the receiver " + register.get(Receiver));
-                        sendMessage(req, Sender, "sip:" + Receiver + '@' + register.get(Receiver), evt.getRequest().getContent().toString());
+                        sendMessage(req, Sender, "sip:" + Receiver + '@' + register.get(Receiver), new String(evt.getRequest().getRawContent()));
                     }
                     // Drop the message TODO: Save the message and send it if the client registers later
                     else {
@@ -285,18 +286,17 @@ public class SipLayer implements SipListener {
                     System.out.println("Message is received from my client");
                     // if the receiver is also in my register
                     if (register.containsKey(Receiver)) {
-                        sendMessage(req, Sender, "sip:" + Receiver + '@' + register.get(Receiver), evt.getRequest().getContent().toString());
+                        sendMessage(req, Sender, "sip:" + Receiver + '@' + register.get(Receiver), new String (evt.getRequest().getRawContent()));
                         System.out.println("Sent directly to receiver");
                     }
                     // I don't know the receiver, I will send it to other servers
                     else {
                         ViaHeader vh = (ViaHeader) req.getHeader(ViaHeader.NAME);
                         if (getUsername().equals("server")) {
-                            //sendMessage(req ,Sender, "sip:" + Receiver + '@' + "127.0.1.1:5064", evt.getRequest().getContent().toString()); //TODO:FIX SERVER ADDRESS
                             System.out.println("fuck " + servers.get("server2"));
-                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server2"), evt.getRequest().getContent().toString()); //TODO:FIX SERVER ADDRESS
+                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server2"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
                         } else {
-                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server"), evt.getRequest().getContent().toString()); //TODO:FIX SERVER ADDRESS
+                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
                         }
                     }
                 }
@@ -309,7 +309,6 @@ public class SipLayer implements SipListener {
 
         } else { //bad request type.
             createResponse(req, 400);
-            return;
         }
 
     }

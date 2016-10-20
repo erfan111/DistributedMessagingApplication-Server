@@ -92,6 +92,7 @@ public class SipRegister {
         // TODO, check console logs
         System.out.println("Sipregister: client: " + client);
         System.out.println("Sipregister: client: " + sender.getHostPort());
+        System.out.println("Sipregister: register: " + hm.toString());
         if (hm.containsKey(client)) {
             return false;
         } else {
