@@ -196,7 +196,17 @@ class SipLayer implements SipListener {
         String Receiver = ((ToHeader) req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
         FromHeader Sender = (FromHeader) req.getHeader(FromHeader.NAME);
 
-        if (method.equals("MESSAGE")) {
+        if (method.equals(Request.REGISTER)) {
+            if (SipRegister.processRequest(req, register)) {
+                System.out.println("registered the sender");
+            } else {
+                System.out.println("already registered");
+            }
+
+            messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
+            createResponse(evt, 200);
+
+        } else if (method.equals(Request.MESSAGE)) {
             try {
                 ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
                 ViaHeader firstVia = (ViaHeader) viaListIter.next();
@@ -220,12 +230,6 @@ class SipLayer implements SipListener {
                     }
                 } else {
                     // from client
-                    // check the register for the sender
-                    if (SipRegister.processRequest(req, register)) {
-                        System.out.println("registered the sender");
-                    } else {
-                        System.out.println("already registered");
-                    }
                     messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
                     System.out.println("Message is received from my client");
                     // if the receiver is also in my register
@@ -235,7 +239,6 @@ class SipLayer implements SipListener {
                     } else {
                         // I don't know the receiver, I will send it to other servers
                         srvm.sendToAll(req, Sender, Receiver, new String(evt.getRequest().getRawContent()), this);
-
                     }
                 }
 

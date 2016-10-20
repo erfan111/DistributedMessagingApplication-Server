@@ -22,8 +22,7 @@ class Helper {
     }
 
     public static String getPortFromSipUri(String uri) {
-        String temp = getAddressFromSipUri(uri);
-        return temp.substring(temp.indexOf(":") + 1);
+        return getPortFromAddress(getAddressFromSipUri(uri));
     }
 
     // *********************************************** Sip Header Helper ***********************************************
@@ -52,9 +51,19 @@ class Helper {
 
     static Address createSipAddress(AddressFactory af, String username, String address) throws ParseException {
         SipURI Address = af.createSipURI(username, address);
-        Address NameAddress = af.createAddress(Address);
+        javax.sip.address.Address NameAddress = af.createAddress(Address);
         NameAddress.setDisplayName(username);
         return NameAddress;
+    }
+
+    // ********************************************** String Address Helper ***********************************************
+
+    private static String getPortFromAddress(String address) {
+        return address.substring(address.indexOf(":") + 1);
+    }
+
+    public static String getIpFromAddress(String address) {
+        return address.substring(0, address.indexOf(":"));
     }
 
     // ****************************************************** End ******************************************************
