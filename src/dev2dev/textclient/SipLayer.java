@@ -30,20 +30,16 @@ public class SipLayer implements SipListener {
 
     // *********************************************** Private variable ************************************************
 
-    private Hashtable<String, String> servers = new Hashtable<>();
     private Hashtable<String, String> register = new Hashtable<>();
-
     private MessageProcessor messageProcessor;
-
     private String username;
-
     private SipFactory sipFactory;
     private AddressFactory addressFactory;
     private HeaderFactory headerFactory;
     private MessageFactory messageFactory;
-
     private SipProvider sipProvider;
     private SipStack sipStack;
+    private serverManagement srvm;
 
     // *********************************************** Public variable *************************************************
 
@@ -52,21 +48,11 @@ public class SipLayer implements SipListener {
     // ************************************************* Constructors **************************************************
 
     public SipLayer(String username, String ip, int port) throws Exception {
-
         setUsername(username);
         initSip(ip, port);
-
-//        register.put("client1", "127.0.1.1:5061");
-//        register.put("client2", "127.0.1.1:5062");
-
-        if (servers.containsKey(getUsername())) {
-
-        }
-        if (getPort() == 5063) {
-            servers.put("server2", getHost() + ":" + (getPort() + 1));
-        } else {
-            servers.put("server", getHost() + ":" + (getPort() - 1));
-        }
+        srvm = new serverManagement(ip, port);
+        srvm.addServer("127.0.1.1", 5063);
+        srvm.addServer("127.0.1.1", 5062);
     }
 
     // ************************************************ Helper methods *************************************************
@@ -240,26 +226,30 @@ public class SipLayer implements SipListener {
                 // CHECK IF THE MESSAGE HAS COME FROM THE SERVER
                 ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
                 ViaHeader Via;
-                String Host;
+//                String Host;
                 Boolean from_me = false;
                 Boolean from_other_server = false;
                 while (viaListIter.hasNext()) {
                     Via = (ViaHeader) viaListIter.next();
-                    if (getUsername().equals("server")) {
-                        Host = "server2";
-                    } else {
-                        Host = "server";
-                    }
-                    System.out.println("other server: " + servers.get(Host).split(":")[1] + " and Via port: " + Via.getPort());
-                    // if message is comming from other server;
-                    if (Integer.parseInt(servers.get(Host).split(":")[1]) == Via.getPort()) {
-                        System.out.println("in az server umade, baraye cliente man ");
+                    if (srvm.hasItem(Via.getHost(), Via.getPort()))
                         from_other_server = true;
-                        break;
-                    }
-                    if (getPort() == Via.getPort()) {
+                    if (srvm.eqaulMyAddress(Via.getHost(), Via.getPort()))
                         from_me = true;
-                    }
+//                    if (getUsername().equals("server")) {
+//                        Host = "server2";
+//                    } else {
+//                        Host = "server";
+//                    }
+//                    System.out.println("other server: " + servers.get(Host).split(":")[1] + " and Via port: " + Via.getPort());
+//                    // if message is comming from other server;
+//                    if (Integer.parseInt(servers.get(Host).split(":")[1]) == Via.getPort()) {
+//                        System.out.println("in az server umade, baraye cliente man ");
+//                        from_other_server = true;
+//                        break;
+//                    }
+//                    if (getPort() == Via.getPort()) {
+//                        from_me = true;
+//                    }
                 }
                 if (from_other_server) {
                     System.out.println("from other server" + (Receiver) + " " + from_me);
@@ -291,13 +281,21 @@ public class SipLayer implements SipListener {
                     }
                     // I don't know the receiver, I will send it to other servers
                     else {
-                        ViaHeader vh = (ViaHeader) req.getHeader(ViaHeader.NAME);
-                        if (getUsername().equals("server")) {
-                            System.out.println("fuck " + servers.get("server2"));
-                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server2"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
-                        } else {
-                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
-                        }
+//                        ViaHeader vh = (ViaHeader) req.getHeader(ViaHeader.NAME);
+//                        for (int i = 0; i < srvm.servers.size(); ++i)
+//                        {
+//                            System.out.println("KKK: " + new String (evt.getRequest().getRawContent()));
+//                            sendMessage(req, Sender, "sip:" + Receiver + '@' + srvm.servers.get(i).toString(),
+//                                    new String (evt.getRequest().getRawContent()));
+//
+//                        }
+                        srvm.sendToAll(req, Sender, Receiver, new String (evt.getRequest().getRawContent()), this);
+//                        if (getUsername().equals("server")) {
+//                            System.out.println("fuck " + servers.get("server2"));
+//                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server2"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
+//                        } else {
+//                            sendMessage(req, Sender, "sip:" + Receiver + '@' + servers.get("server"), new String (evt.getRequest().getRawContent())); //TODO:FIX SERVER ADDRESS
+//                        }
                     }
                 }
 

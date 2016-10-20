@@ -12,7 +12,11 @@ public class serverAddressItem {
         this.port = port;
     }
 
+    public String toString() {
+        return ip + ":" + port;
+    }
+
     public boolean equals(String ip, int port) {
-        return this.ip == ip && this.port == port;
+        return this.ip.equals(ip) && this.port == port;
     }
 }
