@@ -39,7 +39,7 @@ public class serverManagement {
         return false;
     }
 
-    public void sendToAll (Request req, FromHeader sender, String receiver, String content, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
+    public void sendToAll(Request req, FromHeader sender, String receiver, String content, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
         for (int i = 0; i < servers.size(); ++i)
             sip.sendMessage(req, sender, "sip:" + receiver + '@' + servers.get(i).toString(), content);
     }

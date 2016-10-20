@@ -22,8 +22,7 @@ public class Helper {
     }
 
     public static String getPortFromSipUri(String uri) {
-        String temp = getAddressFromSipUri(uri);
-        return temp.substring(temp.indexOf(":") + 1);
+        return getPortFromAddress(getAddressFromSipUri(uri));
     }
 
     // *********************************************** Sip Header Helper ***********************************************
@@ -46,7 +45,7 @@ public class Helper {
     public static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String username, String address)
             throws ParseException {
         Address fromNameAddress = createSipAddress(af, username, address);
-        FromHeader fromHeader = hf.createFromHeader(fromNameAddress, null);
+        FromHeader fromHeader = hf.createFromHeader(fromNameAddress, "textclientv1.0");
         return fromHeader;
     }
 
@@ -54,9 +53,19 @@ public class Helper {
 
     public static Address createSipAddress(AddressFactory af, String username, String address) throws ParseException {
         SipURI Address = af.createSipURI(username, address);
-        Address NameAddress = af.createAddress(Address);
+        javax.sip.address.Address NameAddress = af.createAddress(Address);
         NameAddress.setDisplayName(username);
         return NameAddress;
+    }
+
+    // ********************************************** String Address Helper ***********************************************
+
+    public static String getPortFromAddress(String address) {
+        return address.substring(address.indexOf(":") + 1);
+    }
+
+    public static String getIpFromAddress(String address) {
+        return address.substring(0, address.indexOf(":"));
     }
 
     // ****************************************************** End ******************************************************
