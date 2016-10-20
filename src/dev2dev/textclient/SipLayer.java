@@ -196,18 +196,16 @@ public class SipLayer implements SipListener {
 
         if (method.equals("MESSAGE")) {
             try {
-                // CHECK IF THE MESSAGE HAS COME FROM THE SERVER
                 ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
-                ViaHeader Via;
+                ViaHeader firstVia = (ViaHeader) viaListIter.next();
                 Boolean from_me = false;
                 Boolean from_other_server = false;
-                while (viaListIter.hasNext()) {
-                    Via = (ViaHeader) viaListIter.next();
-                    if (srvm.hasItem(Via.getHost(), Via.getPort()))
-                        from_other_server = true;
-                    if (srvm.eqaulMyAddress(Via.getHost(), Via.getPort()))
-                        from_me = true;
-                }
+
+                if (srvm.hasItem(firstVia.getHost(), firstVia.getPort()))
+                    from_other_server = true;
+                if (srvm.eqaulMyAddress(firstVia.getHost(), firstVia.getPort()))
+                    from_me = true;
+
                 if (from_other_server) {
                     System.out.println("from other server" + (Receiver) + " " + from_me);
                     messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
