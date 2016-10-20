@@ -1,7 +1,6 @@
 package dev2dev.textclient;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetAddress;
@@ -18,16 +17,9 @@ public class TextClient
     private SipLayer sipLayer;
 
     private JTextField fromAddress;
-    private JLabel fromLbl;
-    private JLabel receivedLbl;
     private JTextArea receivedMessages;
-    private JScrollPane receivedScrollPane;
-    private JButton sendBtn;
-    private JLabel sendLbl;
-    private JTextField sendMessages;
-    private JTextField toAddress;
-    private JLabel toLbl;
 
+    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
         if (args.length != 2) {
             printUsage();
@@ -69,16 +61,16 @@ public class TextClient
     }
 
     private void initWindow() {
-        receivedLbl = new JLabel();
-        sendLbl = new JLabel();
-        sendMessages = new JTextField();
-        receivedScrollPane = new JScrollPane();
+        JLabel receivedLbl = new JLabel();
+        JLabel sendLbl = new JLabel();
+        JTextField sendMessages = new JTextField();
+        JScrollPane receivedScrollPane = new JScrollPane();
         receivedMessages = new JTextArea();
-        fromLbl = new JLabel();
+        JLabel fromLbl = new JLabel();
         fromAddress = new JTextField();
-        toLbl = new JLabel();
-        toAddress = new JTextField();
-        sendBtn = new JButton();
+        JLabel toLbl = new JLabel();
+        JTextField toAddress = new JTextField();
+        JButton sendBtn = new JButton();
 
         getContentPane().setLayout(null);
 
@@ -128,11 +120,7 @@ public class TextClient
         toAddress.setBounds(40, 225, 235, 21);
 
         sendBtn.setText("Send");
-        sendBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                sendBtnActionPerformed(evt);
-            }
-        });
+        sendBtn.addActionListener(this::sendBtnActionPerformed);
 
         getContentPane().add(sendBtn);
         sendBtn.setBounds(200, 255, 75, 25);
@@ -143,14 +131,14 @@ public class TextClient
 
     private void sendBtnActionPerformed(ActionEvent evt) {
 
-        try {
-            String to = this.toAddress.getText();
-            String message = this.sendMessages.getText();
+//        try {
+//            String to = this.toAddress.getText();
+//            String message = this.sendMessages.getText();
 //            sipLayer.sendMessage(to, message);
-        } catch (Throwable e) {
-            e.printStackTrace();
-            this.receivedMessages.append("ERROR sending message: " + e.getMessage() + "\n");
-        }
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//            this.receivedMessages.append("ERROR sending message: " + e.getMessage() + "\n");
+//        }
 
     }
 

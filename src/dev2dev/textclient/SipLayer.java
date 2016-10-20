@@ -25,7 +25,7 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-public class SipLayer implements SipListener {
+class SipLayer implements SipListener {
 
     // *********************************************** Private variable ************************************************
 
@@ -42,7 +42,7 @@ public class SipLayer implements SipListener {
 
     // ************************************************* Constructors **************************************************
 
-    public SipLayer(String username, String ip, int port) throws Exception {
+    SipLayer(String username, String ip, int port) throws Exception {
         setUsername(username);
         initSip(ip, port);
         srvm = new serverManagement(ip, port);
@@ -65,6 +65,7 @@ public class SipLayer implements SipListener {
         return sipFactory.createSipStack(properties);
     }
 
+    @SuppressWarnings("deprecation")
     private void initSip(String ip, int port) throws Exception {
 
         sipFactory = SipFactory.getInstance();
@@ -89,7 +90,8 @@ public class SipLayer implements SipListener {
     /**
      * This method uses the SIP stack to send a message.
      */
-    public void sendMessage(Request req, FromHeader Sender, String to, String message) throws ParseException,
+    @SuppressWarnings("deprecation")
+    void sendMessage(Request req, FromHeader Sender, String to, String message) throws ParseException,
             InvalidArgumentException, SipException {
 
         System.out.println("SendMessage called with: " + to + message);
@@ -102,7 +104,7 @@ public class SipLayer implements SipListener {
         requestURI.setTransportParam("udp");
 
         ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
-        ArrayList viaHeaders = new ArrayList();
+        ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
 
         viaHeaders.add(getSelfViaHeader());
 
@@ -137,7 +139,7 @@ public class SipLayer implements SipListener {
     }
 
 
-    public void createResponse(RequestEvent evt, int response_status_code) {
+    private void createResponse(RequestEvent evt, int response_status_code) {
         Response response;
 
         try {
@@ -150,7 +152,7 @@ public class SipLayer implements SipListener {
         }
     }
 
-    public void createForwardResponse(ResponseEvent evt) {
+    private void createForwardResponse(ResponseEvent evt) {
         Response response;
 
         try {
@@ -281,7 +283,7 @@ public class SipLayer implements SipListener {
 
     // ************************************************ Get/Set methods ************************************************
 
-    public String getAddress() {
+    private String getAddress() {
         return getHost() + ":" + getPort();
     }
 
@@ -291,29 +293,27 @@ public class SipLayer implements SipListener {
     }
 
     private ViaHeader getSelfViaHeader() throws ParseException, InvalidArgumentException {
-        ViaHeader viaHeader = headerFactory.createViaHeader(getHost(), getPort(), "udp", "branch1");
-        return viaHeader;
+        return headerFactory.createViaHeader(getHost(), getPort(), "udp", "branch1");
     }
 
-    public String getHost() {
-        String host = sipStack.getIPAddress();
-        return host;
+    String getHost() {
+        return sipStack.getIPAddress();
     }
 
-    public int getPort() {
-        int port = sipProvider.getListeningPoint().getPort();
-        return port;
+    @SuppressWarnings("deprecation")
+    int getPort() {
+        return sipProvider.getListeningPoint().getPort();
     }
 
-    public String getUsername() {
+    String getUsername() {
         return username;
     }
 
-    public void setUsername(String newUsername) {
+    private void setUsername(String newUsername) {
         username = newUsername;
     }
 
-    public void setMessageProcessor(MessageProcessor newMessageProcessor) {
+    void setMessageProcessor(MessageProcessor newMessageProcessor) {
         messageProcessor = newMessageProcessor;
     }
 

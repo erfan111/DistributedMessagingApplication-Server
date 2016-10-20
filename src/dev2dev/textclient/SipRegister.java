@@ -12,26 +12,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-public class SipRegister {
+@SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
+class SipRegister {
 
     private HashMap<String, String> childs = new HashMap<>();
-    private ArrayList viaHeaders;
-    private ViaHeader viaHeader;
 
     private SipProvider sipProvider;
     private AddressFactory addressFactory;
     private HeaderFactory headerFactory;
     private MessageFactory messageFactory;
-    private CallIdHeader callIdHeader;
-    private CSeqHeader cSeqHeader;
-    private FromHeader fromHeader;
-    private Address fromAddress, contactAddress;
-    private ToHeader toHeader;
-    private MaxForwardsHeader maxForwardsHeader;
-    private ContactHeader contactHeader;
-    private Request request;
 
-    private String username, server, tag = "Tag", protocol, ip;
+    private String username;
+    private String server;
+    private String protocol;
+    private String ip;
     private int port;
     private long cseq = 0;
 
@@ -49,18 +43,19 @@ public class SipRegister {
     }
 
     public void sendRequest() throws Exception {
-        callIdHeader = sipProvider.getNewCallId();
-        cSeqHeader = headerFactory.createCSeqHeader(cseq, "REGISTER");
-        fromAddress = addressFactory.createAddress("sip:" + username + '@' + server);
-        fromHeader = headerFactory.createFromHeader(fromAddress, String.valueOf(tag));
-        toHeader = headerFactory.createToHeader(fromAddress, null);
-        maxForwardsHeader = headerFactory.createMaxForwardsHeader(70);
-        viaHeaders = new ArrayList();
-        viaHeader = headerFactory.createViaHeader(ip, port, protocol, null);
+        CallIdHeader callIdHeader = sipProvider.getNewCallId();
+        CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(cseq, "REGISTER");
+        Address fromAddress = addressFactory.createAddress("sip:" + username + '@' + server);
+        String tag = "Tag";
+        FromHeader fromHeader = headerFactory.createFromHeader(fromAddress, String.valueOf(tag));
+        ToHeader toHeader = headerFactory.createToHeader(fromAddress, null);
+        MaxForwardsHeader maxForwardsHeader = headerFactory.createMaxForwardsHeader(70);
+        ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
+        ViaHeader viaHeader = headerFactory.createViaHeader(ip, port, protocol, null);
         viaHeaders.add(viaHeader);
-        contactAddress = addressFactory.createAddress("sip:" + username + '@' + ip + "transport=" + protocol);
-        contactHeader = headerFactory.createContactHeader(contactAddress);
-        request = messageFactory.createRequest("REGISTER sip:" + server + "SIP/2.0\r\n\r\n");
+        Address contactAddress = addressFactory.createAddress("sip:" + username + '@' + ip + "transport=" + protocol);
+        ContactHeader contactHeader = headerFactory.createContactHeader(contactAddress);
+        Request request = messageFactory.createRequest("REGISTER sip:" + server + "SIP/2.0\r\n\r\n");
         request.addHeader(callIdHeader);
         request.addHeader(cSeqHeader);
         request.addHeader(fromHeader);
@@ -86,7 +81,7 @@ public class SipRegister {
         }
     }
 
-    public static boolean processRequest(Request request, Hashtable hm) {
+    static boolean processRequest(Request request, Hashtable<String, String> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {

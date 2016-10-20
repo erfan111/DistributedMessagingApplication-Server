@@ -9,15 +9,15 @@ import javax.sip.header.ToHeader;
 import java.text.ParseException;
 
 @SuppressWarnings("unused")
-public class Helper {
+class Helper {
 
     // ************************************************ Sip Uri Helper *************************************************
 
-    public static String getAddressFromSipUri(String uri) {
+    static String getAddressFromSipUri(String uri) {
         return uri.substring(uri.indexOf("@") + 1);
     }
 
-    public static String getUserNameFromSipUri(String uri) {
+    private static String getUserNameFromSipUri(String uri) {
         return uri.substring(uri.indexOf(":") + 1, uri.indexOf("@"));
     }
 
@@ -28,7 +28,7 @@ public class Helper {
 
     // *********************************************** Sip Header Helper ***********************************************
 
-    public static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String to) throws ParseException {
+    static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String to) throws ParseException {
         return createToHeader(af, hf, getUserNameFromSipUri(to), getAddressFromSipUri(to));
     }
 
@@ -36,23 +36,21 @@ public class Helper {
         return createFromHeader(af, hf, getUserNameFromSipUri(from), getAddressFromSipUri(from));
     }
 
-    public static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String username, String address)
+    private static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String username, String address)
             throws ParseException {
         Address toNameAddress = createSipAddress(af, username, address);
-        ToHeader toHeader = hf.createToHeader(toNameAddress, null);
-        return toHeader;
+        return hf.createToHeader(toNameAddress, null);
     }
 
-    public static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String username, String address)
+    private static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String username, String address)
             throws ParseException {
         Address fromNameAddress = createSipAddress(af, username, address);
-        FromHeader fromHeader = hf.createFromHeader(fromNameAddress, null);
-        return fromHeader;
+        return hf.createFromHeader(fromNameAddress, null);
     }
 
     // ********************************************** Sip Address Helper ***********************************************
 
-    public static Address createSipAddress(AddressFactory af, String username, String address) throws ParseException {
+    static Address createSipAddress(AddressFactory af, String username, String address) throws ParseException {
         SipURI Address = af.createSipURI(username, address);
         Address NameAddress = af.createAddress(Address);
         NameAddress.setDisplayName(username);

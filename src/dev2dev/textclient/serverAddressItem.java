@@ -3,11 +3,11 @@ package dev2dev.textclient;
 /**
  * Created by hooman on 10/19/16.
  */
-public class serverAddressItem {
-    public String ip;
-    public int port;
+class serverAddressItem {
+    private String ip;
+    private int port;
 
-    public serverAddressItem(String ip, int port) {
+    serverAddressItem(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
@@ -16,7 +16,7 @@ public class serverAddressItem {
         return ip + ":" + port;
     }
 
-    public boolean equals(String ip, int port) {
+    boolean equals(String ip, int port) {
         return this.ip.equals(ip) && this.port == port;
     }
 }
