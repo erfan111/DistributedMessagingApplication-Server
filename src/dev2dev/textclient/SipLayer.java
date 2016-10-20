@@ -54,7 +54,7 @@ public class SipLayer implements SipListener {
         initSip(ip, port);
         srvm = new serverManagement(ip, port);
         srvm.addServer(InetAddress.getLocalHost().getHostAddress(), 5063);
-        srvm.addServer(InetAddress.getLocalHost().getHostAddress(), 5062);
+        srvm.addServer(InetAddress.getLocalHost().getHostAddress(), 5064);
     }
 
     // ************************************************ Helper methods *************************************************
