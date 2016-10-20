@@ -89,10 +89,6 @@ public class SipRegister {
     public static boolean processRequest(Request request, Hashtable hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
-        // TODO, check console logs
-        System.out.println("Sipregister: client: " + client);
-        System.out.println("Sipregister: client: " + sender.getHostPort());
-        System.out.println("Sipregister: register: " + hm.toString());
         if (hm.containsKey(client)) {
             return false;
         } else {
