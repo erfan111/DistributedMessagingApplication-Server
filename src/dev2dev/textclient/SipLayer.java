@@ -1,6 +1,8 @@
 package dev2dev.textclient;
 
 import gov.nist.javax.sip.header.To;
+
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.*;
 import javax.sip.DialogTerminatedEvent;
@@ -51,8 +53,8 @@ public class SipLayer implements SipListener {
         setUsername(username);
         initSip(ip, port);
         srvm = new serverManagement(ip, port);
-        srvm.addServer("127.0.1.1", 5063);
-        srvm.addServer("127.0.1.1", 5062);
+        srvm.addServer(InetAddress.getLocalHost().getHostAddress(), 5063);
+        srvm.addServer(InetAddress.getLocalHost().getHostAddress(), 5062);
     }
 
     // ************************************************ Helper methods *************************************************
