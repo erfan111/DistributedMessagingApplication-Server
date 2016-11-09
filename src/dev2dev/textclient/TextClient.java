@@ -24,6 +24,7 @@ public class TextClient
     private JTextField sendMessages;
     private JTextField toAddress;
     private JLabel toLbl;
+    private JButton deRegisterBtn;
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) {
@@ -77,6 +78,7 @@ public class TextClient
         toLbl = new JLabel();
         toAddress = new JTextField();
         sendBtn = new JButton();
+        deRegisterBtn = new JButton();
 
         getContentPane().setLayout(null);
 
@@ -133,17 +135,33 @@ public class TextClient
         getContentPane().add(sendBtn);
         sendBtn.setBounds(200, 255, 75, 25);
 
+        deRegisterBtn.addActionListener(evt -> {
+            deRegisterBtnActionPerformed();
+        });
+        deRegisterBtn.setText("DeRegister");
+        getContentPane().add(deRegisterBtn);
+        deRegisterBtn.setBounds(100, 255, 75, 25);
+
         sendBtn.setText("Register");
         toLbl.setText("ServerAddress:");
         sendMessages.setVisible(false);
         sendLbl.setVisible(false);
-//        receivedLbl.setVisible(false);
-//        receivedScrollPane.setVisible(false);
         toAddress.setText("IP:PORT");
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 288, 320);
 
+    }
+
+    private void deRegisterBtnActionPerformed() {
+
+        try {
+            String serverAddress = this.toAddress.getText();
+            sipLayer.CallDeRegisterRequest(serverAddress);
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.receivedMessages.append("ERROR register" + e.getMessage() + "\n");
+        }
     }
 
     private void registerBtnActionPerformed() {

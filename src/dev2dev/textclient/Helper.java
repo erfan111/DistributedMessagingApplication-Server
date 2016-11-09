@@ -4,12 +4,17 @@ import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
 
 @SuppressWarnings("unused")
 class Helper {
+
+    public static String getHeaderValue(Header header){
+        return header.toString().trim().split(" ")[1];
+    }
 
     // ************************************************ Sip Uri HeaderHelper *************************************************
 
@@ -58,7 +63,7 @@ class Helper {
 
     // ********************************************** String Address HeaderHelper ***********************************************
 
-    private static String getPortFromAddress(String address) {
+    public static String getPortFromAddress(String address) {
         return address.substring(address.indexOf(":") + 1);
     }
 

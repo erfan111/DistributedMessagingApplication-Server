@@ -31,9 +31,12 @@ class SipRegister {
     private int port;
     private long cseq = 0;
     public static final String RegisterHeader = "regidterHeader";
-    public static final String ServerRegister = "Server";
-    public static final String ClientRegister = "Client";
 
+    public static final String ClientRegister = "Reg_Client";
+    public static final String ClientDeRegister = "DeReg_Client";
+
+    public static final String ServerRegister = "Reg_Server";
+    public static final String ServerDeRegister = "DeReg_Server";
 
     public SipRegister(SipProvider sp, SipFactory sf, String username, String server,
                        String ip, int port, String protocol) throws Exception {
@@ -98,7 +101,7 @@ class SipRegister {
         }
     }
 
-    static boolean processRequestClient(Request request, Hashtable<String, String> hm) {
+    static boolean registerClient(Request request, Hashtable<String, String> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
@@ -108,6 +111,18 @@ class SipRegister {
             return true;
         }
     }
+
+    static boolean deRegisterClient(Request request, Hashtable<String, String> hm) {
+        From sender = (From) request.getHeader(From.NAME);
+        String client = sender.getAddress().getDisplayName();
+        if (hm.containsKey(client)) {
+            hm.remove(client);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     public boolean isRegister(String client) {
         return childs.containsKey(client);
