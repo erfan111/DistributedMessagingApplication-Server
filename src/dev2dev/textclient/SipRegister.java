@@ -1,6 +1,7 @@
 package dev2dev.textclient;
 
 import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.parser.StringMsgParser;
 
 import javax.sip.SipFactory;
 import javax.sip.SipProvider;
@@ -29,6 +30,10 @@ class SipRegister {
     private String ip;
     private int port;
     private long cseq = 0;
+    public static final String RegisterHeader = "regidterHeader";
+    public static final String ServerRegister = "Server";
+    public static final String ClientRegister = "Client";
+
 
     public SipRegister(SipProvider sp, SipFactory sf, String username, String server,
                        String ip, int port, String protocol) throws Exception {
@@ -82,7 +87,18 @@ class SipRegister {
         }
     }
 
-    static boolean processRequest(Request request, Hashtable<String, String> hm) {
+    static boolean processRequestServer(Request request, Hashtable<String, String> hm) {
+        From sender = (From) request.getHeader(From.NAME);
+        String client = sender.getAddress().getDisplayName();
+        if (hm.containsKey(client)) {
+            return false;
+        } else {
+            hm.put(client, sender.getHostPort().toString());
+            return true;
+        }
+    }
+
+    static boolean processRequestClient(Request request, Hashtable<String, String> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {

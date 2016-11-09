@@ -1,6 +1,5 @@
 package dev2dev.textclient;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetAddress;
@@ -17,7 +16,14 @@ public class TextClient
     private SipLayer sipLayer;
 
     private JTextField fromAddress;
+    private JLabel receivedLbl;
     private JTextArea receivedMessages;
+    private JScrollPane receivedScrollPane;
+    private JButton sendBtn;
+    private JLabel sendLbl;
+    private JTextField sendMessages;
+    private JTextField toAddress;
+    private JLabel toLbl;
 
     @SuppressWarnings("deprecation")
     public static void main(String[] args) {
@@ -61,16 +67,16 @@ public class TextClient
     }
 
     private void initWindow() {
-        JLabel receivedLbl = new JLabel();
-        JLabel sendLbl = new JLabel();
-        JTextField sendMessages = new JTextField();
-        JScrollPane receivedScrollPane = new JScrollPane();
+        receivedLbl = new JLabel();
+        sendLbl = new JLabel();
+        sendMessages = new JTextField();
+        receivedScrollPane = new JScrollPane();
         receivedMessages = new JTextArea();
         JLabel fromLbl = new JLabel();
         fromAddress = new JTextField();
-        JLabel toLbl = new JLabel();
-        JTextField toAddress = new JTextField();
-        JButton sendBtn = new JButton();
+        toLbl = new JLabel();
+        toAddress = new JTextField();
+        sendBtn = new JButton();
 
         getContentPane().setLayout(null);
 
@@ -119,26 +125,36 @@ public class TextClient
         getContentPane().add(toAddress);
         toAddress.setBounds(40, 225, 235, 21);
 
-        sendBtn.setText("Send");
-        sendBtn.addActionListener(this::sendBtnActionPerformed);
+        sendBtn.addActionListener(evt -> {
+            registerBtnActionPerformed();
+
+        });
 
         getContentPane().add(sendBtn);
         sendBtn.setBounds(200, 255, 75, 25);
 
+        sendBtn.setText("Register");
+        toLbl.setText("ServerAddress:");
+        sendMessages.setVisible(false);
+        sendLbl.setVisible(false);
+//        receivedLbl.setVisible(false);
+//        receivedScrollPane.setVisible(false);
+        toAddress.setText("IP:PORT");
+
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         setBounds((screenSize.width - 288) / 2, (screenSize.height - 310) / 2, 288, 320);
+
     }
 
-    private void sendBtnActionPerformed(ActionEvent evt) {
+    private void registerBtnActionPerformed() {
 
-//        try {
-//            String to = this.toAddress.getText();
-//            String message = this.sendMessages.getText();
-//            sipLayer.sendMessage(to, message);
-//        } catch (Throwable e) {
-//            e.printStackTrace();
-//            this.receivedMessages.append("ERROR sending message: " + e.getMessage() + "\n");
-//        }
+        try {
+            String serverAddress = this.toAddress.getText();
+            sipLayer.CallregisterRequest(serverAddress);
+        } catch (Exception e) {
+            e.printStackTrace();
+            this.receivedMessages.append("ERROR register" + e.getMessage() + "\n");
+        }
 
     }
 

@@ -11,7 +11,7 @@ import java.text.ParseException;
 @SuppressWarnings("unused")
 class Helper {
 
-    // ************************************************ Sip Uri Helper *************************************************
+    // ************************************************ Sip Uri HeaderHelper *************************************************
 
     static String getAddressFromSipUri(String uri) {
         return uri.substring(uri.indexOf("@") + 1);
@@ -25,7 +25,7 @@ class Helper {
         return getPortFromAddress(getAddressFromSipUri(uri));
     }
 
-    // *********************************************** Sip Header Helper ***********************************************
+    // *********************************************** Sip HeaderUtilities HeaderHelper ***********************************************
 
     static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String to) throws ParseException {
         return createToHeader(af, hf, getUserNameFromSipUri(to), getAddressFromSipUri(to));
@@ -35,19 +35,19 @@ class Helper {
         return createFromHeader(af, hf, getUserNameFromSipUri(from), getAddressFromSipUri(from));
     }
 
-    private static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String username, String address)
+    static ToHeader createToHeader(AddressFactory af, HeaderFactory hf, String username, String address)
             throws ParseException {
         Address toNameAddress = createSipAddress(af, username, address);
         return hf.createToHeader(toNameAddress, null);
     }
 
-    private static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String username, String address)
+    static FromHeader createFromHeader(AddressFactory af, HeaderFactory hf, String username, String address)
             throws ParseException {
         Address fromNameAddress = createSipAddress(af, username, address);
         return hf.createFromHeader(fromNameAddress, null);
     }
 
-    // ********************************************** Sip Address Helper ***********************************************
+    // ********************************************** Sip Address HeaderHelper ***********************************************
 
     static Address createSipAddress(AddressFactory af, String username, String address) throws ParseException {
         SipURI Address = af.createSipURI(username, address);
@@ -56,7 +56,7 @@ class Helper {
         return NameAddress;
     }
 
-    // ********************************************** String Address Helper ***********************************************
+    // ********************************************** String Address HeaderHelper ***********************************************
 
     private static String getPortFromAddress(String address) {
         return address.substring(address.indexOf(":") + 1);
