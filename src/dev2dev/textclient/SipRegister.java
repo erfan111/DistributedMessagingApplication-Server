@@ -101,28 +101,30 @@ class SipRegister {
         }
     }
 
-    static boolean registerClient(Request request, Hashtable<String, String> hm) {
+    static boolean registerClient(Request request, Hashtable<String, Client> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
+            hm.get(client).setOnlineStatus(true);
+
             return false;
         } else {
-            hm.put(client, sender.getHostPort().toString());
+            System.out.println(sender.getHostPort().toString());
+            hm.put(client, new Client(client, new MyAddress(sender.getHostPort().toString()), true));
             return true;
         }
     }
 
-    static boolean deRegisterClient(Request request, Hashtable<String, String> hm) {
+    static boolean deRegisterClient(Request request, Hashtable<String, Client> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
-            hm.remove(client);
+            hm.get(client).setOnlineStatus(false);
             return true;
         } else {
             return false;
         }
     }
-
 
     public boolean isRegister(String client) {
         return childs.containsKey(client);

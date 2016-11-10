@@ -1,6 +1,7 @@
 package dev2dev.textclient;
 
 import javax.sip.InvalidArgumentException;
+import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Request;
@@ -49,7 +50,6 @@ class serverManagement {
         return removeServer(ip , Integer.parseInt(port));
     }
 
-
     boolean hasItem(String ip, int port) {
         for (MyAddress server : servers)
             if (server.equals(ip, port))
@@ -64,10 +64,8 @@ class serverManagement {
         return null;
     }
 
-
-    void sendToAll(Request req, FromHeader sender, String receiver, String content, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
+    void sendToAll(RequestEvent evt, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
         for (MyAddress server : servers)
-            sip.sendMessage(req, sender, "sip:" + receiver + '@' + server.toString(), content);
+            sip.forwardMessage(evt, server, false);
     }
-
 }
