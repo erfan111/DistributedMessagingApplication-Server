@@ -1,6 +1,5 @@
 package dev2dev.textclient;
 
-import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.*;
 import javax.sip.DialogTerminatedEvent;
@@ -305,15 +304,17 @@ class SipLayer implements SipListener {
             switch (method) {
                 case Request.REGISTER:
                     String registerHeaderValue = Helper.getHeaderValue(req.getHeader(SipRegister.RegisterHeader));
-                    String senderAddress = "";
+                    String senderAddress;
                     boolean isOk;
                     switch (registerHeaderValue) {
                         case SipRegister.ServerRegister:
                             System.out.println("fucking server");
                             senderAddress = Helper.getAddressFromSipUri(Sender.getAddress().getURI().toString());
-                            isOk = srvm.addServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(senderAddress));
+                            isOk = srvm.addServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(
+                                    senderAddress), messageProcessor);
 
                             if (isOk) {
+
                                 System.out.println("server : registered the server");
                             } else {
                                 System.out.println("server : already registered");
@@ -327,7 +328,8 @@ class SipLayer implements SipListener {
                         case SipRegister.ServerDeRegister:
                             System.out.println("fucking server");
                             senderAddress = Helper.getAddressFromSipUri(Sender.getAddress().getURI().toString());
-                            isOk = srvm.removeServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(senderAddress));
+                            isOk = srvm.removeServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(
+                                    senderAddress), messageProcessor);
 
                             if (isOk) {
                                 System.out.println("server : Deregistered the server");
@@ -342,19 +344,19 @@ class SipLayer implements SipListener {
                         case SipRegister.ClientDeRegister:
                             System.out.println("fucking client");
                             if (SipRegister.deRegisterClient(req, clientRegistery)) {
-                                System.out.println("client : deregistered the sender");
+                                messageProcessor.processClientDeReg(clientRegistery.keySet());
+                                System.out.println("Deregistered the Client");
                             } else {
-                                System.out.println("client : already deregistered");
+                                System.out.println("client : already Deregistered");
                             }
 
                             messageProcessor.processMessage(Sender.getAddress().getDisplayName(), "DE" + method);
                             createResponseForClientDeRegistered(evt, 200);
                             break;
                         default:
-
                             System.out.println("fucking client");
-                            if (SipRegister.registerClient(req, clientRegistery)) {
-                                System.out.println("client : registered the sender");
+                            if (SipRegister.registerClient(req, clientRegistery, messageProcessor)) {
+                                System.out.println("registered the client");
                             } else {
                                 System.out.println("client : already registered");
                             }

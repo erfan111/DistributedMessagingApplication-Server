@@ -101,13 +101,14 @@ class SipRegister {
         }
     }
 
-    static boolean registerClient(Request request, Hashtable<String, String> hm) {
+    static boolean registerClient(Request request, Hashtable<String, String> hm, MessageProcessor messageProcessor) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
             return false;
         } else {
             hm.put(client, sender.getHostPort().toString());
+            messageProcessor.processClientReg(client);
             return true;
         }
     }

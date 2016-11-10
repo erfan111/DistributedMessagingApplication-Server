@@ -6,6 +6,8 @@ import javax.sip.header.FromHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 
 
 class serverManagement {
@@ -23,30 +25,31 @@ class serverManagement {
         return ip.equals(myip) && port == myport;
     }
 
-    boolean addServer(String ip, int port) {
+    private boolean addServer(String ip, int port, MessageProcessor messageProcessor) {
         if (hasItem(ip, port) || (ip.equals(myip) && port == myport))
             return false;
-        servers.add(new MyAddress(ip, port));
+        MyAddress temp = new MyAddress(ip, port);
+        servers.add(temp);
+        messageProcessor.processServerReg(temp.toString());
         return true;
     }
 
-    boolean addServer(String ip, String port) {
-        return addServer(ip , Integer.parseInt(port));
+    boolean addServer(String ip, String port, MessageProcessor messageProcessor) {
+        return addServer(ip , Integer.parseInt(port), messageProcessor);
     }
 
-    boolean removeServer(String ip, int port) {
+    private boolean removeServer(String ip, int port, MessageProcessor messageProcessor) {
         MyAddress temp = getItem(ip, port);
         if (temp != null){
             servers.remove(temp);
-
+            messageProcessor.processServerDeReg(getServersArray());
             return true;
-        } else{
-            return false;
         }
+        return false;
     }
 
-    boolean removeServer(String ip, String port) {
-        return removeServer(ip , Integer.parseInt(port));
+    boolean removeServer(String ip, String port, MessageProcessor messageProcessor) {
+        return removeServer(ip , Integer.parseInt(port), messageProcessor);
     }
 
 
@@ -57,7 +60,7 @@ class serverManagement {
         return false;
     }
 
-    MyAddress getItem(String ip, int port) {
+    private MyAddress getItem(String ip, int port) {
         for (MyAddress server : servers)
             if (server.equals(ip, port))
                 return server;
@@ -68,6 +71,10 @@ class serverManagement {
     void sendToAll(Request req, FromHeader sender, String receiver, String content, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
         for (MyAddress server : servers)
             sip.sendMessage(req, sender, "sip:" + receiver + '@' + server.toString(), content);
+    }
+
+    private HashSet<String> getServersArray(){
+        return servers.stream().map(MyAddress::toString).collect(Collectors.toCollection(HashSet::new));
     }
 
 }
