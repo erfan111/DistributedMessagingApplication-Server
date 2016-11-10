@@ -1,7 +1,6 @@
 package dev2dev.textclient;
 
 import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.parser.StringMsgParser;
 
 import javax.sip.SipFactory;
 import javax.sip.SipProvider;
@@ -30,13 +29,13 @@ class SipRegister {
     private String ip;
     private int port;
     private long cseq = 0;
-    public static final String RegisterHeader = "regidterHeader";
+    static final String RegisterHeader = "regidterHeader";
 
-    public static final String ClientRegister = "Reg_Client";
-    public static final String ClientDeRegister = "DeReg_Client";
+    static final String ClientRegister = "Reg_Client";
+    static final String ClientDeRegister = "DeReg_Client";
 
-    public static final String ServerRegister = "Reg_Server";
-    public static final String ServerDeRegister = "DeReg_Server";
+    static final String ServerRegister = "Reg_Server";
+    static final String ServerDeRegister = "DeReg_Server";
 
     public SipRegister(SipProvider sp, SipFactory sf, String username, String server,
                        String ip, int port, String protocol) throws Exception {
@@ -101,29 +100,30 @@ class SipRegister {
         }
     }
 
-    static boolean registerClient(Request request, Hashtable<String, String> hm, MessageProcessor messageProcessor) {
+    static boolean registerClient(Request request, Hashtable<String, Client> hm, MessageProcessor messageProcessor) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
+            hm.get(client).setOnlineStatus(true);
+
             return false;
         } else {
-            hm.put(client, sender.getHostPort().toString());
+            hm.put(client, new Client(client, new MyAddress(sender.getHostPort().toString()), true));
             messageProcessor.processClientReg(client);
             return true;
         }
     }
 
-    static boolean deRegisterClient(Request request, Hashtable<String, String> hm) {
+    static boolean deRegisterClient(Request request, Hashtable<String, Client> hm) {
         From sender = (From) request.getHeader(From.NAME);
         String client = sender.getAddress().getDisplayName();
         if (hm.containsKey(client)) {
-            hm.remove(client);
+            hm.get(client).setOnlineStatus(false);
             return true;
         } else {
             return false;
         }
     }
-
 
     public boolean isRegister(String client) {
         return childs.containsKey(client);

@@ -1,19 +1,19 @@
 package dev2dev.textclient;
 
-public class MyAddress {
-    public String ip;
-    public int port;
+class MyAddress {
+    private String ip;
+    private int port;
 
-    public MyAddress(String address){
+    MyAddress(String address){
         this(Helper.getIpFromAddress(address), Helper.getPortFromAddress(address));
     }
 
-    public MyAddress(String ip, int port) {
+    MyAddress(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
 
-    public MyAddress(String ip, String port) {
+    private MyAddress(String ip, String port) {
         this(ip, Integer.parseInt(port));
     }
 
