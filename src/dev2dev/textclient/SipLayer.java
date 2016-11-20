@@ -223,6 +223,7 @@ class SipLayer implements SipListener {
             response = evt.getResponse();
             SipProvider p = (SipProvider) evt.getSource();
             response.removeFirst(ViaHeader.NAME);
+            response.setHeader(headerFactory.createHeader(Helper.cachedHeader, getHost() + ":" + getPort()));
             p.sendResponse(response);
 
         } catch (Throwable e) {
@@ -315,7 +316,10 @@ class SipLayer implements SipListener {
                 //response doesn't contain a header register
                 CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
                 String to = ((ToHeader) response.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
-                System.out.println(to.trim().equals(to));
+
+                if(!clientRegistery.containsKey(to))
+                    srvm.clientCached.put(to , new MyAddress(Helper.getHeaderValue(response.getHeader(Helper.cachedHeader))));
+
                 System.out.println(clientRegistery.toString());
 
                 if (clientRegistery.containsKey(to)){

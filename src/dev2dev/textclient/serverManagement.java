@@ -4,9 +4,11 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import javax.sip.header.ToHeader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.stream.Collectors;
 
 
@@ -14,6 +16,7 @@ class serverManagement {
     private ArrayList<MyAddress> servers;
     private String myip;
     private int myport;
+    public Hashtable<String, MyAddress> clientCached = new Hashtable<>();
 
     static final String MyViaHeader = "MyViaHeader";
 
@@ -69,6 +72,14 @@ class serverManagement {
     }
 
     void sendWithRouting(RequestEvent evt, SipLayer sip) throws Exception {
+        String toName = ((ToHeader) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getDisplayName();
+
+        if (clientCached.containsKey(toName)){
+            System.out.println(clientCached.get(toName).toString());
+            sip.forwardMessage(evt, clientCached.get(toName), false);
+            return ;
+        }
+
         ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(evt);
 
         for (MyAddress server : servers) {

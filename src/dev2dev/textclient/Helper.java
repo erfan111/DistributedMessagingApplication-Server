@@ -20,6 +20,8 @@ import java.util.Arrays;
 @SuppressWarnings("unused")
 class Helper {
     public static String FailHeader = "FailHeader";
+    public static String cachedHeader = "cachedHeader";
+
     // ********************************************  Custom Header Helper **********************************************
 
     static String getHeaderValue(Header header){
