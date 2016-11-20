@@ -1,8 +1,5 @@
 package dev2dev.textclient;
 
-import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.To;
-
 import java.text.ParseException;
 import java.util.*;
 import javax.sip.DialogTerminatedEvent;
@@ -31,7 +28,7 @@ class SipLayer implements SipListener {
 
     // *********************************************** Private variable ************************************************
 
-    private Hashtable<String, Client> clientRegistery = new Hashtable<>();
+    public Hashtable<String, Client> clientRegistery = new Hashtable<>();
     private MessageProcessor messageProcessor;
     private String username;
     private SipFactory sipFactory;
@@ -40,7 +37,7 @@ class SipLayer implements SipListener {
     private MessageFactory messageFactory;
     private SipProvider sipProvider;
     private SipStack sipStack;
-    private serverManagement srvm;
+    public serverManagement srvm;
 
     // ************************************************* Constructors **************************************************
 
@@ -87,57 +84,6 @@ class SipLayer implements SipListener {
 
     // ************************************************ Message methods ************************************************
 
-    /**
-     * This method uses the SIP stack to send a message.
-     */
-    @SuppressWarnings("deprecation")
-    void sendMessage(Request req, FromHeader Sender, String to, String message) throws ParseException,
-            InvalidArgumentException, SipException {
-
-        System.out.println("SendMessage called with: " + to + message);
-
-        //prepare data and header that needs for sending Message/Request
-
-        ToHeader toHeader = Helper.createToHeader(addressFactory, headerFactory, to);
-
-        SipURI requestURI = addressFactory.createSipURI(getUsername(), Helper.getAddressFromSipUri(to));
-        requestURI.setTransportParam("udp");
-
-        ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
-        ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
-
-        viaHeaders.add(getSelfViaHeader());
-
-        while (viaListIter.hasNext()) {
-            ViaHeader Via = (ViaHeader) viaListIter.next();
-            System.out.println(Via.getHost() + " " + Via.getMAddr() + " " + Via.getPort());
-            ViaHeader viaHeader = headerFactory.createViaHeader(Via.getHost(),
-                    Via.getPort(), "udp", "branch1");
-            viaHeaders.add(viaHeader);
-        }
-
-        CallIdHeader callIdHeader = sipProvider.getNewCallId();
-
-        CSeqHeader cSeqHeader = headerFactory.createCSeqHeader(1,
-                Request.MESSAGE);
-
-        MaxForwardsHeader maxForwards = headerFactory
-                .createMaxForwardsHeader(70);
-
-        ContentTypeHeader contentTypeHeader = headerFactory
-                .createContentTypeHeader("text", "plain");
-
-        Request request = messageFactory.createRequest(requestURI,
-                Request.MESSAGE, callIdHeader, cSeqHeader, Sender,
-                toHeader, viaHeaders, maxForwards, contentTypeHeader,
-                message);
-
-        request.addHeader(getSelfContactHeader());
-
-        System.out.println("sent");
-        sipProvider.sendRequest(request);
-    }
-
     void forwardMessage(RequestEvent evt, MyAddress to, boolean toIsClient) throws ParseException,
             InvalidArgumentException, SipException {
         Request req = evt.getRequest();
@@ -156,21 +102,90 @@ class SipLayer implements SipListener {
                 sipProvider.sendRequest(req);
             }
         }else{
+            ArrayList<MyAddress> myViaHeaders = Helper.getMyViaHeaderValue(req);
+            myViaHeaders.add(new MyAddress(getAddress()));
+
+            try{
+                req.setHeader(Helper.createMyViaHeader(headerFactory, myViaHeaders));
+            }catch (Exception e ){
+                e.printStackTrace();
+            }
+            req.removeHeader(Helper.FailHeader);
+
             System.out.println("sent");
             sipProvider.sendRequest(req);
         }
     }
 
-    private void createResponse(RequestEvent evt, int response_status_code, Header header) {
+    public void createRequestFailToFindClient(Request req) throws Exception{
+        System.out.println("createRequestFailToFindClient");
+        ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
+        ViaHeader via = null;
+        ArrayList<ViaHeader> viaHeaders = new ArrayList<>();
+
+        while (viaListIter.hasNext()) {
+            ViaHeader viaHeader = (ViaHeader) viaListIter.next();
+            if (via == null){
+                via = viaHeader;
+            }else{
+                viaHeaders.add(viaHeader);
+            }
+        }
+        System.out.println("send fail to" + via.getHost() + ":" + via.getPort());
+        SipURI requestURI = addressFactory.createSipURI(getUsername(), via.getHost() + ":" + via.getPort());
+        requestURI.setTransportParam("udp");
+
+        ToHeader toHeader = (ToHeader) req.getHeader(ToHeader.NAME);
+        FromHeader fromHeader = (FromHeader) req.getHeader(FromHeader.NAME);
+
+        CallIdHeader callIdHeader = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+
+        CSeqHeader cSeqHeader = (CSeqHeader) req.getHeader(CSeqHeader.NAME);
+
+        MaxForwardsHeader maxForwards = (MaxForwardsHeader) req.getHeader(MaxForwardsHeader.NAME);
+        ContentTypeHeader contentTypeHeader = (ContentTypeHeader) req.getHeader(ContentTypeHeader.NAME);
+
+        Request request = messageFactory.createRequest(requestURI,
+                Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
+                toHeader, viaHeaders, maxForwards,contentTypeHeader,
+                req.getContent());
+
+        ArrayList<MyAddress> list = Helper.getMyViaHeaderValue(req);
+        list.add(new MyAddress(getAddress()));
+
+        request.setHeader(Helper.createMyViaHeader(headerFactory, list));
+
+        request.setHeader(headerFactory.createHeader(Helper.FailHeader , "yes"));
+
+        sipProvider.sendRequest(request);
+    }
+
+    private void createResponse(Request req, int response_status_code, Header header) {
         Response response;
 
         try {
-            response = messageFactory.createResponse(response_status_code, evt.getRequest());
+            response = messageFactory.createResponse(response_status_code, req);
             if(header != null)
-                response.addHeader(header);
+                response.setHeader(header);
 
-            SipProvider p = (SipProvider) evt.getSource();
-            p.sendResponse(response);
+            ToHeader toHeader = (ToHeader) req.getHeader(ToHeader.NAME);
+            response.setHeader(toHeader);
+
+            FromHeader fromHeader = (FromHeader) req.getHeader(FromHeader.NAME);
+            response.setHeader(fromHeader);
+
+            CallIdHeader callIdHeader = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
+            response.setHeader(callIdHeader);
+
+            CSeqHeader cSeqHeader = (CSeqHeader)req.getHeader(CSeqHeader.NAME);
+            response.setHeader(cSeqHeader);
+
+            MaxForwardsHeader maxForwardsHeader = (MaxForwardsHeader)req.getHeader(MaxForwardsHeader.NAME);
+            response.setHeader(maxForwardsHeader);
+
+            req.removeFirst(ViaHeader.NAME);
+
+            sipProvider.sendResponse(response);
         } catch (Throwable e) {
             e.printStackTrace();
             messageProcessor.processError("Can't send OK reply.");
@@ -178,28 +193,28 @@ class SipLayer implements SipListener {
     }
 
     private void createResponse(RequestEvent evt, int response_status_code) {
-        createResponse(evt, response_status_code, null);
+        createResponse(evt.getRequest(), response_status_code, null);
     }
 
     private void createResponseForServerRegistered(RequestEvent evt, int response_status_code) throws ParseException {
         Header header = headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ServerRegister);
-        createResponse(evt, response_status_code, header);
+        createResponse(evt.getRequest(), response_status_code, header);
     }
 
     private void createResponseForClientRegistered(RequestEvent evt, int response_status_code) throws ParseException {
         Header header = headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ClientRegister);
-        createResponse(evt, response_status_code, header);
+        createResponse(evt.getRequest(), response_status_code, header);
 
     }
 
     private void createResponseForServerDeRegistered(RequestEvent evt, int response_status_code) throws ParseException {
         Header header = headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ServerDeRegister);
-        createResponse(evt, response_status_code, header);
+        createResponse(evt.getRequest(), response_status_code, header);
     }
 
     private void createResponseForClientDeRegistered(RequestEvent evt, int response_status_code) throws ParseException {
         Header header = headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ClientDeRegister);
-        createResponse(evt, response_status_code, header);
+        createResponse(evt.getRequest(), response_status_code, header);
     }
 
     private void createForwardResponse(ResponseEvent evt) {
@@ -208,6 +223,7 @@ class SipLayer implements SipListener {
             response = evt.getResponse();
             SipProvider p = (SipProvider) evt.getSource();
             response.removeFirst(ViaHeader.NAME);
+            response.setHeader(headerFactory.createHeader(Helper.cachedHeader, getHost() + ":" + getPort()));
             p.sendResponse(response);
 
         } catch (Throwable e) {
@@ -300,7 +316,10 @@ class SipLayer implements SipListener {
                 //response doesn't contain a header register
                 CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
                 String to = ((ToHeader) response.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
-                System.out.println(to.trim().equals(to));
+
+                if(!clientRegistery.containsKey(to))
+                    srvm.clientCached.put(to , new MyAddress(Helper.getHeaderValue(response.getHeader(Helper.cachedHeader))));
+
                 System.out.println(clientRegistery.toString());
 
                 if (clientRegistery.containsKey(to)){
@@ -316,7 +335,7 @@ class SipLayer implements SipListener {
                 else
                     messageProcessor.processInfo("You are registered in destination server" + status);
             }
-        } else {
+        } else{
             messageProcessor.processError("Previous message not sent: " + status);
         }
     }
@@ -336,7 +355,7 @@ class SipLayer implements SipListener {
         try {
             switch (method) {
                 case Request.REGISTER:
-                    String registerHeaderValue = Helper.getHeaderValue(req.getHeader(SipRegister.RegisterHeader));
+                    String registerHeaderValue = Helper.getRegisterHeaderValue(evt);
                     String senderAddress;
                     boolean isOk;
                     switch (registerHeaderValue) {
@@ -405,44 +424,52 @@ class SipLayer implements SipListener {
 
                     break;
                 case Request.MESSAGE:
-                    try {
-                        ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
-                        ViaHeader firstVia = (ViaHeader) viaListIter.next();
-                        Boolean from_me = false;
-                        Boolean from_other_server = false;
+                    if(Helper.getFailHeaderValue(req) == null){
+                        try {
+                            ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
+                            ViaHeader firstVia = (ViaHeader) viaListIter.next();
+                            Boolean from_me = false;
+                            Boolean from_other_server = false;
 
-                        if (srvm.hasItem(firstVia.getHost(), firstVia.getPort()))
-                            from_other_server = true;
-                        if (srvm.eqaulMyAddress(firstVia.getHost(), firstVia.getPort()))
-                            from_me = true;
+                            if (srvm.hasItem(firstVia.getHost(), firstVia.getPort()))
+                                from_other_server = true;
+                            if (srvm.eqaulMyAddress(firstVia.getHost(), firstVia.getPort()))
+                                from_me = true;
 
-                        if (from_other_server) {
-                            System.out.println("from other server" + (Receiver) + " " + from_me);
-                            messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
-                            if (!from_me && clientRegistery.containsKey(Receiver)) {
-                                System.out.println("I have the receiver " + clientRegistery.get(Receiver).getAddress());
-                                forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
+                            if (from_other_server) {
+                                System.out.println("from other server" + (Receiver) + " " + from_me);
+                                messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
+                                if (!from_me && clientRegistery.containsKey(Receiver)) {
+                                    System.out.println("I have the receiver " + clientRegistery.get(Receiver).getAddress());
+                                    forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
+                                } else {
+
+                                    //TODO: return error respone for routing
+
+                                    srvm.sendWithRouting(evt, this);
+                                    System.out.println("no such client, dropping.... may need to waite for registering");
+                                }
                             } else {
-                                //TODO: return error respone for routing
-                                System.out.println("no such client, dropping.... may need to waite for registering");
-                            }
-                        } else {
-                            // from client
-                            messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
-                            System.out.println("Message is received from my client");
-                            // if the receiver is also in my register
-                            if (clientRegistery.containsKey(Receiver)) {
+                                // from client
+                                messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
+                                System.out.println("Message is received from my client");
+                                // if the receiver is also in my register
+                                if (clientRegistery.containsKey(Receiver)) {
 
-                                forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
-                                System.out.println("Sent directly to receiver");
-                            } else {
-                                // I don't know the receiver, I will send it to other servers
-                                srvm.sendToAll(evt, this);
+                                    forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
+                                    System.out.println("Sent directly to receiver");
+                                } else {
+                                    // I don't know the receiver, I will send it to other servers
+                                    srvm.sendWithRouting(evt, this);
+                                }
                             }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    }else{
+                        System.out.println("FAIL recieved");
+                        srvm.sendWithRouting(evt , this);
                     }
 
 
