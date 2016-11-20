@@ -33,4 +33,7 @@ class MyAddress {
     boolean equals(String ip, int port) {
         return this.ip.equals(ip) && this.port == port;
     }
+    boolean equals(MyAddress myAddress) {
+        return this.ip.equals(myAddress.ip) && this.port == myAddress.port;
+    }
 }
