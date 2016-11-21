@@ -183,6 +183,9 @@ class SipLayer implements SipListener {
             MaxForwardsHeader maxForwardsHeader = (MaxForwardsHeader)req.getHeader(MaxForwardsHeader.NAME);
             response.setHeader(maxForwardsHeader);
 
+            response.setHeader(headerFactory.createHeader(Helper.ServerSource,
+                    "sip:" + getUsername() + "@" + Helper.getHeaderValue(req.getHeader(Helper.ServerSource))));
+
             req.removeFirst(ViaHeader.NAME);
 
             sipProvider.sendResponse(response);
@@ -260,6 +263,7 @@ class SipLayer implements SipListener {
         request.addHeader(getSelfContactHeader());
 
         request.addHeader(headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ServerRegister));
+        request.setHeader(headerFactory.createHeader(Helper.ServerSource, serverAddress));
 
         sipProvider.sendRequest(request);
 
@@ -293,6 +297,7 @@ class SipLayer implements SipListener {
         request.addHeader(getSelfContactHeader());
 
         request.addHeader(headerFactory.createHeader(SipRegister.RegisterHeader, SipRegister.ServerDeRegister));
+        request.addHeader(headerFactory.createHeader(Helper.ServerSource, serverAddress));
 
         sipProvider.sendRequest(request);
 
@@ -309,10 +314,9 @@ class SipLayer implements SipListener {
         int status = response.getStatusCode();
 
         if ((status >= 200) && (status < 300)) {
-            messageProcessor.processInfo("--Sent");
 
             if (response.getHeader(SipRegister.RegisterHeader) == null){
-
+                messageProcessor.processInfo("--Sent");
                 //response doesn't contain a header register
                 CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
                 String to = ((ToHeader) response.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
@@ -330,10 +334,17 @@ class SipLayer implements SipListener {
                 createForwardResponse(evt);
             }else{
 
-                if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister))
-                    messageProcessor.processInfo("You are deregistered in destination server" + status);
-                else
-                    messageProcessor.processInfo("You are registered in destination server" + status);
+                if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)){
+
+                    String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
+                    boolean isOk = srvm.removeServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
+                    messageProcessor.processInfo("deRegistered in " + Helper.getUserNameFromSipUri(severDesUri));
+                }
+                else{
+                    String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
+                    boolean isOk = srvm.addServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
+                    messageProcessor.processInfo("registered in " + Helper.getUserNameFromSipUri(severDesUri));
+                }
             }
         } else{
             messageProcessor.processError("Previous message not sent: " + status);
@@ -366,13 +377,12 @@ class SipLayer implements SipListener {
                                     senderAddress), messageProcessor);
 
                             if (isOk) {
-
                                 System.out.println("server : registered the server");
                             } else {
                                 System.out.println("server : already registered");
                             }
 
-                            messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
+                            messageProcessor.processInfo("registered in " + Sender.getAddress().getDisplayName());
                             createResponseForServerRegistered(evt, 200);
 
                             break;
@@ -389,7 +399,7 @@ class SipLayer implements SipListener {
                                 System.out.println("server : already Deregistered");
                             }
 
-                            messageProcessor.processMessage(Sender.getAddress().getDisplayName(), "deregister");
+                            messageProcessor.processInfo("deRegistered in " + Sender.getAddress().getDisplayName());
                             createResponseForServerDeRegistered(evt, 200);
 
                             break;

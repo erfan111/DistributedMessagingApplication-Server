@@ -21,6 +21,7 @@ import java.util.Arrays;
 class Helper {
     public static String FailHeader = "FailHeader";
     public static String cachedHeader = "cachedHeader";
+    public static String ServerSource = "ServerSource";
 
     // ********************************************  Custom Header Helper **********************************************
 
@@ -116,7 +117,7 @@ class Helper {
         return uri.substring(uri.indexOf("@") + 1);
     }
 
-    private static String getUserNameFromSipUri(String uri) {
+    public static String getUserNameFromSipUri(String uri) {
         return uri.substring(uri.indexOf(":") + 1, uri.indexOf("@"));
     }
 

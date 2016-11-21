@@ -43,6 +43,10 @@ class serverManagement {
         return addServer(ip, Integer.parseInt(port), messageProcessor);
     }
 
+    boolean addServer(MyAddress myAddress, MessageProcessor messageProcessor) {
+        return addServer(myAddress.getIp(), myAddress.getPort(), messageProcessor);
+    }
+
     private boolean removeServer(String ip, int port, MessageProcessor messageProcessor) {
         MyAddress temp = getItem(ip, port);
         if (temp != null) {
@@ -55,6 +59,10 @@ class serverManagement {
 
     boolean removeServer(String ip, String port, MessageProcessor messageProcessor) {
         return removeServer(ip, Integer.parseInt(port), messageProcessor);
+    }
+
+    boolean removeServer(MyAddress myAddress, MessageProcessor messageProcessor) {
+        return removeServer(myAddress.getIp(), myAddress.getPort(), messageProcessor);
     }
 
     boolean hasItem(String ip, int port) {
