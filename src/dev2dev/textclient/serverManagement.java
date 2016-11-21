@@ -1,11 +1,7 @@
 package dev2dev.textclient;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
 import javax.sip.header.ToHeader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -16,7 +12,7 @@ class serverManagement {
     private ArrayList<MyAddress> servers;
     private String myip;
     private int myport;
-    public Hashtable<String, MyAddress> clientCached = new Hashtable<>();
+    Hashtable<String, MyAddress> clientCached = new Hashtable<>();
 
     static final String MyViaHeader = "MyViaHeader";
 
@@ -107,8 +103,8 @@ class serverManagement {
 //    }
 
     private boolean hasItem(ArrayList<MyAddress> array, MyAddress item) {
-        for (int i = 0; i < array.size(); i++) {
-            if (array.get(i).equals(item))
+        for (MyAddress anArray : array) {
+            if (anArray.equals(item))
                 return true;
         }
         return false;

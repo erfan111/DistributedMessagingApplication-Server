@@ -28,7 +28,7 @@ class SipLayer implements SipListener {
 
     // *********************************************** Private variable ************************************************
 
-    public Hashtable<String, Client> clientRegistery = new Hashtable<>();
+    private Hashtable<String, Client> clientRegistry = new Hashtable<>();
     private MessageProcessor messageProcessor;
     private String username;
     private SipFactory sipFactory;
@@ -37,7 +37,7 @@ class SipLayer implements SipListener {
     private MessageFactory messageFactory;
     private SipProvider sipProvider;
     private SipStack sipStack;
-    public serverManagement srvm;
+    private serverManagement srvm;
 
     // ************************************************* Constructors **************************************************
 
@@ -95,7 +95,7 @@ class SipLayer implements SipListener {
 
         if (toIsClient){
             String clientStr = ((ToHeader)req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
-            Client client = clientRegistery.get(clientStr);
+            Client client = clientRegistry.get(clientStr);
             client.addRequestEvent(evt);
             if(client.getOnlineStatus()){
                 System.out.println("sent");
@@ -117,7 +117,7 @@ class SipLayer implements SipListener {
         }
     }
 
-    public void createRequestFailToFindClient(Request req) throws Exception{
+    void createRequestFailToFindClient(Request req) throws Exception{
         System.out.println("createRequestFailToFindClient");
         ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
         ViaHeader via = null;
@@ -131,6 +131,7 @@ class SipLayer implements SipListener {
                 viaHeaders.add(viaHeader);
             }
         }
+        assert via != null;
         System.out.println("send fail to" + via.getHost() + ":" + via.getPort());
         SipURI requestURI = addressFactory.createSipURI(getUsername(), via.getHost() + ":" + via.getPort());
         requestURI.setTransportParam("udp");
@@ -232,6 +233,7 @@ class SipLayer implements SipListener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     void CallregisterRequest(String serverAddress) throws ParseException,
             InvalidArgumentException, SipException {
 
@@ -265,6 +267,7 @@ class SipLayer implements SipListener {
 
     }
 
+    @SuppressWarnings("deprecation")
     void CallDeRegisterRequest(String serverAddress) throws ParseException,
             InvalidArgumentException, SipException {
 
@@ -309,7 +312,7 @@ class SipLayer implements SipListener {
         int status = response.getStatusCode();
 
         if ((status >= 200) && (status < 300)) {
-            messageProcessor.processInfo("--Sent");
+            messageProcessor.processInfo("--Receive Acknowledged");
 
             if (response.getHeader(SipRegister.RegisterHeader) == null){
 
@@ -317,16 +320,15 @@ class SipLayer implements SipListener {
                 CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
                 String to = ((ToHeader) response.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
 
-                if(!clientRegistery.containsKey(to))
+                if(!clientRegistry.containsKey(to))
                     srvm.clientCached.put(to , new MyAddress(Helper.getHeaderValue(response.getHeader(Helper.cachedHeader))));
 
-                System.out.println(clientRegistery.toString());
+                System.out.println(clientRegistry.toString());
 
-                if (clientRegistery.containsKey(to)){
-                    System.out.println("containes it");
-                    clientRegistery.get(to).removeRequestEventWithCallIdHeader(callIdHeader);
+                if (clientRegistry.containsKey(to)){
+                    System.out.println("client registery containes the receiver");
+                    clientRegistry.get(to).removeRequestEventWithCallIdHeader(callIdHeader);
                 }
-
                 createForwardResponse(evt);
             }else{
 
@@ -360,7 +362,6 @@ class SipLayer implements SipListener {
                     boolean isOk;
                     switch (registerHeaderValue) {
                         case SipRegister.ServerRegister:
-                            System.out.println("fucking server");
                             senderAddress = Helper.getAddressFromSipUri(Sender.getAddress().getURI().toString());
                             isOk = srvm.addServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(
                                     senderAddress), messageProcessor);
@@ -378,7 +379,6 @@ class SipLayer implements SipListener {
                             break;
 
                         case SipRegister.ServerDeRegister:
-                            System.out.println("fucking server");
                             senderAddress = Helper.getAddressFromSipUri(Sender.getAddress().getURI().toString());
                             isOk = srvm.removeServer(Helper.getIpFromAddress(senderAddress), Helper.getPortFromAddress(
                                     senderAddress), messageProcessor);
@@ -394,9 +394,8 @@ class SipLayer implements SipListener {
 
                             break;
                         case SipRegister.ClientDeRegister:
-                            System.out.println("fucking client");
-                            if (SipRegister.deRegisterClient(req, clientRegistery)) {
-                                messageProcessor.processClientDeReg(clientRegistery.keySet());
+                            if (SipRegister.deRegisterClient(req, clientRegistry)) {
+                                messageProcessor.processClientDeReg(clientRegistry.keySet());
                                 System.out.println("Deregistered the Client");
                             } else {
                                 System.out.println("client : already Deregistered");
@@ -406,22 +405,16 @@ class SipLayer implements SipListener {
                             createResponseForClientDeRegistered(evt, 200);
                             break;
                         default:
-                            System.out.println("fucking client");
-                            if (SipRegister.registerClient(req, clientRegistery, messageProcessor)) {
+                            if (SipRegister.registerClient(req, clientRegistry, messageProcessor)) {
                                 System.out.println("registered the client");
                             } else {
-
                                 System.out.println("make client online");
                             }
-
                             messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
                             createResponseForClientRegistered(evt, 200);
-                            clientRegistery.get(Receiver).CheckMessageStorage(this);
-
+                            clientRegistry.get(Receiver).CheckMessageStorage(this);
                             break;
                     }
-
-
                     break;
                 case Request.MESSAGE:
                     if(Helper.getFailHeaderValue(req) == null){
@@ -437,33 +430,32 @@ class SipLayer implements SipListener {
                                 from_me = true;
 
                             if (from_other_server) {
-                                System.out.println("from other server" + (Receiver) + " " + from_me);
+                                System.out.println("from other server, receiver is: " + Receiver);
                                 messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
-                                if (!from_me && clientRegistery.containsKey(Receiver)) {
-                                    System.out.println("I have the receiver " + clientRegistery.get(Receiver).getAddress());
-                                    forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
+                                if (!from_me && clientRegistry.containsKey(Receiver)) {
+                                    System.out.println("I have the receiver " + clientRegistry.get(Receiver).getAddress());
+                                    forwardMessage(evt, clientRegistry.get(Receiver).getAddress(), true);
                                 } else {
 
                                     //TODO: return error respone for routing
-
+                                    System.out.println("Initiating routing, receiver is: " + Receiver);
                                     srvm.sendWithRouting(evt, this);
-                                    System.out.println("no such client, dropping.... may need to waite for registering");
                                 }
                             } else {
                                 // from client
                                 messageProcessor.processMessage(Sender.getAddress().getDisplayName(), method);
                                 System.out.println("Message is received from my client");
                                 // if the receiver is also in my register
-                                if (clientRegistery.containsKey(Receiver)) {
+                                if (clientRegistry.containsKey(Receiver)) {
 
-                                    forwardMessage(evt, clientRegistery.get(Receiver).getAddress(), true);
+                                    forwardMessage(evt, clientRegistry.get(Receiver).getAddress(), true);
                                     System.out.println("Sent directly to receiver");
                                 } else {
                                     // I don't know the receiver, I will send it to other servers
+                                    System.out.println("Initiating routing, receiver is: " + Receiver);
                                     srvm.sendWithRouting(evt, this);
                                 }
                             }
-
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -471,20 +463,14 @@ class SipLayer implements SipListener {
                         System.out.println("FAIL recieved");
                         srvm.sendWithRouting(evt , this);
                     }
-
-
                     break;
                 default: //bad request type.
                     createResponse(evt, 400);
-
                     break;
             }
         }catch (Exception e){
             e.printStackTrace();
-
         }
-
-
     }
 
     /**
