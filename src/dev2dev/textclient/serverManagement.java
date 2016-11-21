@@ -6,9 +6,7 @@ import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -48,12 +46,37 @@ class serverManagement {
     }
 
     private boolean removeServer(String ip, int port, MessageProcessor messageProcessor) {
+        System.out.println("what the fuck" + clientCached.toString());
+
+        Enumeration<String> enumKey = clientCached.keys();
+
+        while(enumKey.hasMoreElements()) {
+            String key = enumKey.nextElement();
+            MyAddress val = clientCached.get(key);
+            if (val.equals(ip, port)) {
+                clientCached.remove(key);
+                break;
+            }
+        }
+
+        System.out.println("what the fuck" + clientCached.toString());
+
+
+        System.out.println("what the shet" + servers.toString());
+
+
         MyAddress temp = getItem(ip, port);
         if (temp != null) {
             servers.remove(temp);
             messageProcessor.processServerDeReg(getServersArray());
+
+            System.out.println("what the shet" + servers.toString());
             return true;
         }
+
+
+        System.out.println("what the fucking shet" + servers.toString());
+
         return false;
     }
 
@@ -90,6 +113,7 @@ class serverManagement {
 
         ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(evt);
 
+        Collections.shuffle(servers);
         for (MyAddress server : servers) {
             if (!hasItem(MyViaHeaders, server)) {
                 System.out.println(server.toString());
@@ -100,19 +124,6 @@ class serverManagement {
 
         sip.createRequestFailToFindClient(evt.getRequest());
     }
-
-//    void sendWithRouting(ResponseEvent ret, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
-//        ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(ret);
-//        for (MyAddress server : servers) {
-//            if (!hasItem(MyViaHeaders, server)) {
-//
-//                sip.forwardMessage(evt, server, false);
-//                break;
-//            }
-//        }
-//
-//        sip.createResponseForFailToFindClient(evt);
-//    }
 
     private boolean hasItem(ArrayList<MyAddress> array, MyAddress item) {
         for (int i = 0; i < array.size(); i++) {
