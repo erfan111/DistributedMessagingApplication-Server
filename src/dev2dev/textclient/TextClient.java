@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class TextClient
         extends JFrame
         implements MessageProcessor {
@@ -141,17 +142,12 @@ public class TextClient
         getContentPane().add(toAddress);
         toAddress.setBounds(60, 225, 235, 21);
 
-        sendBtn.addActionListener(evt -> {
-            registerBtnActionPerformed();
-
-        });
+        sendBtn.addActionListener(evt -> registerBtnActionPerformed());
 
         getContentPane().add(sendBtn);
         sendBtn.setBounds(170, 255, 100, 25);
         sendBtn.setBackground(Color.green);
-        deRegisterBtn.addActionListener(evt -> {
-            deRegisterBtnActionPerformed();
-        });
+        deRegisterBtn.addActionListener(evt -> deRegisterBtnActionPerformed());
         deRegisterBtn.setText("DeReg");
         getContentPane().add(deRegisterBtn);
         deRegisterBtn.setBounds(50, 255, 100, 25);
@@ -180,8 +176,8 @@ public class TextClient
         myClientsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         getContentPane().add(myClientsScrollPane);
         myClientsScrollPane.setBounds(150, 305, 140, 100);
-        
-        
+
+
         sendBtn.setText("Register");
         toLbl.setText("Server:");
         sendMessages.setVisible(false);
@@ -235,14 +231,14 @@ public class TextClient
     }
 
     @Override
-    public void processClientReg(String client){
+    public void processClientReg(String client) {
         this.myClients.append(
                 client + "\n"
         );
     }
 
     @Override
-    public void processClientDeReg(Set<String> clients){
+    public void processClientDeReg(Set<String> clients) {
         this.myClients.setText("");
         clients.forEach(this::processClientReg);
     }

@@ -4,7 +4,7 @@ class MyAddress {
     private String ip;
     private int port;
 
-    MyAddress(String address){
+    MyAddress(String address) {
         this(Helper.getIpFromAddress(address), Helper.getPortFromAddress(address));
     }
 
@@ -17,11 +17,11 @@ class MyAddress {
         this(ip, Integer.parseInt(port));
     }
 
-    public int getPort() {
+    int getPort() {
         return port;
     }
 
-    public String getIp() {
+    String getIp() {
         return ip;
     }
 
@@ -33,6 +33,7 @@ class MyAddress {
     boolean equals(String ip, int port) {
         return this.ip.equals(ip) && this.port == port;
     }
+
     boolean equals(MyAddress myAddress) {
         return this.ip.equals(myAddress.ip) && this.port == myAddress.port;
     }

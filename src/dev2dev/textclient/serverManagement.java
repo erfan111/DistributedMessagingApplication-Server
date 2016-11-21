@@ -2,6 +2,7 @@ package dev2dev.textclient;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.ToHeader;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -39,18 +40,38 @@ class serverManagement {
         return addServer(ip, Integer.parseInt(port), messageProcessor);
     }
 
+    boolean addServer(MyAddress myAddress, MessageProcessor messageProcessor) {
+        return addServer(myAddress.getIp(), myAddress.getPort(), messageProcessor);
+    }
+
     private boolean removeServer(String ip, int port, MessageProcessor messageProcessor) {
+        Enumeration<String> enumKey = clientCached.keys();
+
+        while (enumKey.hasMoreElements()) {
+            String key = enumKey.nextElement();
+            MyAddress val = clientCached.get(key);
+            if (val.equals(ip, port)) {
+                clientCached.remove(key);
+                break;
+            }
+        }
+
         MyAddress temp = getItem(ip, port);
         if (temp != null) {
             servers.remove(temp);
             messageProcessor.processServerDeReg(getServersArray());
             return true;
         }
+
         return false;
     }
 
     boolean removeServer(String ip, String port, MessageProcessor messageProcessor) {
         return removeServer(ip, Integer.parseInt(port), messageProcessor);
+    }
+
+    boolean removeServer(MyAddress myAddress, MessageProcessor messageProcessor) {
+        return removeServer(myAddress.getIp(), myAddress.getPort(), messageProcessor);
     }
 
     boolean hasItem(String ip, int port) {
@@ -70,37 +91,25 @@ class serverManagement {
     void sendWithRouting(RequestEvent evt, SipLayer sip) throws Exception {
         String toName = ((ToHeader) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getDisplayName();
 
-        if (clientCached.containsKey(toName)){
+        if (clientCached.containsKey(toName)) {
             System.out.println(clientCached.get(toName).toString());
             sip.forwardMessage(evt, clientCached.get(toName), false);
-            return ;
+            return;
         }
 
         ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(evt);
 
+        Collections.shuffle(servers);
         for (MyAddress server : servers) {
             if (!hasItem(MyViaHeaders, server)) {
                 System.out.println(server.toString());
                 sip.forwardMessage(evt, server, false);
-                return ;
+                return;
             }
         }
 
         sip.createRequestFailToFindClient(evt.getRequest());
     }
-
-//    void sendWithRouting(ResponseEvent ret, SipLayer sip) throws ParseException, SipException, InvalidArgumentException {
-//        ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(ret);
-//        for (MyAddress server : servers) {
-//            if (!hasItem(MyViaHeaders, server)) {
-//
-//                sip.forwardMessage(evt, server, false);
-//                break;
-//            }
-//        }
-//
-//        sip.createResponseForFailToFindClient(evt);
-//    }
 
     private boolean hasItem(ArrayList<MyAddress> array, MyAddress item) {
         for (MyAddress anArray : array) {
