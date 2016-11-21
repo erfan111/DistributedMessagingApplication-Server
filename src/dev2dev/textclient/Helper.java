@@ -25,45 +25,45 @@ class Helper {
 
     // ********************************************  Custom Header Helper **********************************************
 
-    static String getHeaderValue(Header header){
+    static String getHeaderValue(Header header) {
         if (header == null)
             return null;
         return header.toString().trim().split(" ")[1];
     }
 
-    static String getRegisterHeaderValue(Request req){
+    static String getRegisterHeaderValue(Request req) {
         return getHeaderValue(req.getHeader(SipRegister.RegisterHeader));
     }
 
-    static String getRegisterHeaderValue(Response res){
+    static String getRegisterHeaderValue(Response res) {
         return getHeaderValue(res.getHeader(SipRegister.RegisterHeader));
     }
 
-    static String getRegisterHeaderValue(RequestEvent evt){
+    static String getRegisterHeaderValue(RequestEvent evt) {
         return getRegisterHeaderValue(evt.getRequest());
     }
 
-    static String getRegisterHeaderValue(ResponseEvent ret){
+    static String getRegisterHeaderValue(ResponseEvent ret) {
         return getRegisterHeaderValue(ret.getResponse());
     }
 
-    static String getFailHeaderValue(Request req){
+    static String getFailHeaderValue(Request req) {
         return getHeaderValue(req.getHeader(FailHeader));
     }
 
-    static String getFailHeaderValue(Response res){
+    static String getFailHeaderValue(Response res) {
         return getHeaderValue(res.getHeader(FailHeader));
     }
 
-    static String getFailHeaderValue(RequestEvent evt){
+    static String getFailHeaderValue(RequestEvent evt) {
         return getFailHeaderValue(evt.getRequest());
     }
 
-    static String getFailHeaderValue(ResponseEvent ret){
+    static String getFailHeaderValue(ResponseEvent ret) {
         return getFailHeaderValue(ret.getResponse());
     }
 
-    static ArrayList<MyAddress> getMyViaHeaderValue(Request req){
+    static ArrayList<MyAddress> getMyViaHeaderValue(Request req) {
         return getMyViaHeaderValue(req.getHeader(serverManagement.MyViaHeader));
     }
 
@@ -75,33 +75,33 @@ class Helper {
         if (header == null)
             return new ArrayList<>();
 
-        String [] array = getHeaderValue(header).split(",");
+        String[] array = getHeaderValue(header).split(",");
 
         System.out.println("start myvia");
         System.out.println(getHeaderValue(header));
         System.out.println("end myvia");
 
         ArrayList<MyAddress> result = new ArrayList<>();
-        for (int i = 0; i < array.length ; i++){
+        for (int i = 0; i < array.length; i++) {
             result.add(new MyAddress(array[i]));
         }
 
         return result;
     }
 
-    static ArrayList<MyAddress> getMyViaHeaderValue(RequestEvent evt){
+    static ArrayList<MyAddress> getMyViaHeaderValue(RequestEvent evt) {
         return getMyViaHeaderValue(evt.getRequest());
     }
 
-    static ArrayList<MyAddress> getMyViaHeaderValue(ResponseEvent ret){
+    static ArrayList<MyAddress> getMyViaHeaderValue(ResponseEvent ret) {
         return getMyViaHeaderValue(ret.getResponse());
     }
 
-    static Header createMyViaHeader(HeaderFactory hf, ArrayList<MyAddress> myViaHeader) throws Exception{
+    static Header createMyViaHeader(HeaderFactory hf, ArrayList<MyAddress> myViaHeader) throws Exception {
         String temp = "";
-        for(int i = 0 ; i < myViaHeader.size() ; i++){
+        for (int i = 0; i < myViaHeader.size(); i++) {
             temp = temp + myViaHeader.get(i).toString();
-            if (i != myViaHeader.size() - 1){
+            if (i != myViaHeader.size() - 1) {
                 temp = temp + ",";
             }
         }

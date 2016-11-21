@@ -1,11 +1,7 @@
 package dev2dev.textclient;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
 import javax.sip.header.ToHeader;
-import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,11 +42,9 @@ class serverManagement {
     }
 
     private boolean removeServer(String ip, int port, MessageProcessor messageProcessor) {
-        System.out.println("what the fuck" + clientCached.toString());
-
         Enumeration<String> enumKey = clientCached.keys();
 
-        while(enumKey.hasMoreElements()) {
+        while (enumKey.hasMoreElements()) {
             String key = enumKey.nextElement();
             MyAddress val = clientCached.get(key);
             if (val.equals(ip, port)) {
@@ -59,23 +53,12 @@ class serverManagement {
             }
         }
 
-        System.out.println("what the fuck" + clientCached.toString());
-
-
-        System.out.println("what the shet" + servers.toString());
-
-
         MyAddress temp = getItem(ip, port);
         if (temp != null) {
             servers.remove(temp);
             messageProcessor.processServerDeReg(getServersArray());
-
-            System.out.println("what the shet" + servers.toString());
             return true;
         }
-
-
-        System.out.println("what the fucking shet" + servers.toString());
 
         return false;
     }
@@ -105,10 +88,10 @@ class serverManagement {
     void sendWithRouting(RequestEvent evt, SipLayer sip) throws Exception {
         String toName = ((ToHeader) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getDisplayName();
 
-        if (clientCached.containsKey(toName)){
+        if (clientCached.containsKey(toName)) {
             System.out.println(clientCached.get(toName).toString());
             sip.forwardMessage(evt, clientCached.get(toName), false);
-            return ;
+            return;
         }
 
         ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(evt);
@@ -118,7 +101,7 @@ class serverManagement {
             if (!hasItem(MyViaHeaders, server)) {
                 System.out.println(server.toString());
                 sip.forwardMessage(evt, server, false);
-                return ;
+                return;
             }
         }
 

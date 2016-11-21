@@ -11,34 +11,34 @@ class Client {
     private ArrayList<RequestEvent> requestEvents;
     private boolean onlineStatus;
 
-    Client(String username, MyAddress address, boolean onlineStatus){
+    Client(String username, MyAddress address, boolean onlineStatus) {
         this.username = username;
         this.requestEvents = new ArrayList<>();
         this.address = address;
         this.onlineStatus = onlineStatus;
     }
 
-    public Client(String username, MyAddress address){
+    public Client(String username, MyAddress address) {
         this(username, address, false);
     }
 
-    public String getUserName(){
+    public String getUserName() {
         return username;
     }
 
-    MyAddress getAddress(){
+    MyAddress getAddress() {
         return address;
     }
 
-    boolean getOnlineStatus(){
+    boolean getOnlineStatus() {
         return onlineStatus;
     }
 
-    void setOnlineStatus(boolean onlineStatus){
+    void setOnlineStatus(boolean onlineStatus) {
         this.onlineStatus = onlineStatus;
     }
 
-    void CheckMessageStorage(SipLayer sip){
+    void CheckMessageStorage(SipLayer sip) {
 
         for (RequestEvent requestEvent : requestEvents) {
             try {
@@ -49,23 +49,23 @@ class Client {
         }
     }
 
-    void removeRequestEventWithCallIdHeader(CallIdHeader callIdHeader){
-            System.out.println("inside remove req evt");
-            for (int i = 0; i < requestEvents.size(); i++) {
-                System.out.println("removing req event from storage");
-                CallIdHeader callIdHeaderTemp = (CallIdHeader) requestEvents.get(i).getRequest().getHeader(CallIdHeader.NAME);
-                if (callIdHeader.getCallId().equals(callIdHeaderTemp.getCallId())) {
-                    requestEvents.remove(requestEvents.get(i));
+    void removeRequestEventWithCallIdHeader(CallIdHeader callIdHeader) {
+        System.out.println("inside remove req evt");
+        for (int i = 0; i < requestEvents.size(); i++) {
+            System.out.println("removing req event from storage");
+            CallIdHeader callIdHeaderTemp = (CallIdHeader) requestEvents.get(i).getRequest().getHeader(CallIdHeader.NAME);
+            if (callIdHeader.getCallId().equals(callIdHeaderTemp.getCallId())) {
+                requestEvents.remove(requestEvents.get(i));
 
-                    break;
-                } else {
-                    System.out.println("big bug");
-                }
+                break;
+            } else {
+                System.out.println("big bug");
             }
+        }
 
     }
 
-    private boolean hasItem(RequestEvent re){
+    private boolean hasItem(RequestEvent re) {
         for (RequestEvent requestEvent : requestEvents) {
             if (((CallIdHeader) requestEvent.getRequest().getHeader(CallIdHeader.NAME)).getCallId().equals(
                     ((CallIdHeader) re.getRequest().getHeader(CallIdHeader.NAME)).getCallId()
@@ -76,8 +76,8 @@ class Client {
         return false;
     }
 
-    void addRequestEvent(RequestEvent re){
-        if (!hasItem(re)){
+    void addRequestEvent(RequestEvent re) {
+        if (!hasItem(re)) {
             this.requestEvents.add(re);
         }
     }

@@ -180,8 +180,8 @@ public class TextClient
         myClientsScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         getContentPane().add(myClientsScrollPane);
         myClientsScrollPane.setBounds(150, 305, 140, 100);
-        
-        
+
+
         sendBtn.setText("Register");
         toLbl.setText("Server:");
         sendMessages.setVisible(false);
@@ -235,14 +235,14 @@ public class TextClient
     }
 
     @Override
-    public void processClientReg(String client){
+    public void processClientReg(String client) {
         this.myClients.append(
                 client + "\n"
         );
     }
 
     @Override
-    public void processClientDeReg(Set<String> clients){
+    public void processClientDeReg(Set<String> clients) {
         this.myClients.setText("");
         clients.forEach(this::processClientReg);
     }

@@ -93,21 +93,21 @@ class SipLayer implements SipListener {
 
         req.addFirst(getSelfViaHeader());
 
-        if (toIsClient){
-            String clientStr = ((ToHeader)req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
+        if (toIsClient) {
+            String clientStr = ((ToHeader) req.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
             Client client = clientRegistery.get(clientStr);
             client.addRequestEvent(evt);
-            if(client.getOnlineStatus()){
+            if (client.getOnlineStatus()) {
                 System.out.println("sent");
                 sipProvider.sendRequest(req);
             }
-        }else{
+        } else {
             ArrayList<MyAddress> myViaHeaders = Helper.getMyViaHeaderValue(req);
             myViaHeaders.add(new MyAddress(getAddress()));
 
-            try{
+            try {
                 req.setHeader(Helper.createMyViaHeader(headerFactory, myViaHeaders));
-            }catch (Exception e ){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             req.removeHeader(Helper.FailHeader);
@@ -117,7 +117,7 @@ class SipLayer implements SipListener {
         }
     }
 
-    public void createRequestFailToFindClient(Request req) throws Exception{
+    public void createRequestFailToFindClient(Request req) throws Exception {
         System.out.println("createRequestFailToFindClient");
         ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
         ViaHeader via = null;
@@ -125,9 +125,9 @@ class SipLayer implements SipListener {
 
         while (viaListIter.hasNext()) {
             ViaHeader viaHeader = (ViaHeader) viaListIter.next();
-            if (via == null){
+            if (via == null) {
                 via = viaHeader;
-            }else{
+            } else {
                 viaHeaders.add(viaHeader);
             }
         }
@@ -147,7 +147,7 @@ class SipLayer implements SipListener {
 
         Request request = messageFactory.createRequest(requestURI,
                 Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
-                toHeader, viaHeaders, maxForwards,contentTypeHeader,
+                toHeader, viaHeaders, maxForwards, contentTypeHeader,
                 req.getContent());
 
         ArrayList<MyAddress> list = Helper.getMyViaHeaderValue(req);
@@ -155,7 +155,7 @@ class SipLayer implements SipListener {
 
         request.setHeader(Helper.createMyViaHeader(headerFactory, list));
 
-        request.setHeader(headerFactory.createHeader(Helper.FailHeader , "yes"));
+        request.setHeader(headerFactory.createHeader(Helper.FailHeader, "yes"));
 
         sipProvider.sendRequest(request);
     }
@@ -165,7 +165,7 @@ class SipLayer implements SipListener {
 
         try {
             response = messageFactory.createResponse(response_status_code, req);
-            if(header != null)
+            if (header != null)
                 response.setHeader(header);
 
             ToHeader toHeader = (ToHeader) req.getHeader(ToHeader.NAME);
@@ -177,10 +177,10 @@ class SipLayer implements SipListener {
             CallIdHeader callIdHeader = (CallIdHeader) req.getHeader(CallIdHeader.NAME);
             response.setHeader(callIdHeader);
 
-            CSeqHeader cSeqHeader = (CSeqHeader)req.getHeader(CSeqHeader.NAME);
+            CSeqHeader cSeqHeader = (CSeqHeader) req.getHeader(CSeqHeader.NAME);
             response.setHeader(cSeqHeader);
 
-            MaxForwardsHeader maxForwardsHeader = (MaxForwardsHeader)req.getHeader(MaxForwardsHeader.NAME);
+            MaxForwardsHeader maxForwardsHeader = (MaxForwardsHeader) req.getHeader(MaxForwardsHeader.NAME);
             response.setHeader(maxForwardsHeader);
 
             response.setHeader(headerFactory.createHeader(Helper.ServerSource,
@@ -315,38 +315,37 @@ class SipLayer implements SipListener {
 
         if ((status >= 200) && (status < 300)) {
 
-            if (response.getHeader(SipRegister.RegisterHeader) == null){
+            if (response.getHeader(SipRegister.RegisterHeader) == null) {
                 messageProcessor.processInfo("--Sent");
                 //response doesn't contain a header register
                 CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
                 String to = ((ToHeader) response.getHeader(ToHeader.NAME)).getAddress().getDisplayName();
 
-                if(!clientRegistery.containsKey(to))
-                    srvm.clientCached.put(to , new MyAddress(Helper.getHeaderValue(response.getHeader(Helper.cachedHeader))));
+                if (!clientRegistery.containsKey(to))
+                    srvm.clientCached.put(to, new MyAddress(Helper.getHeaderValue(response.getHeader(Helper.cachedHeader))));
 
                 System.out.println(clientRegistery.toString());
 
-                if (clientRegistery.containsKey(to)){
+                if (clientRegistery.containsKey(to)) {
                     System.out.println("containes it");
                     clientRegistery.get(to).removeRequestEventWithCallIdHeader(callIdHeader);
                 }
 
                 createForwardResponse(evt);
-            }else{
+            } else {
 
-                if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)){
+                if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)) {
 
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
                     boolean isOk = srvm.removeServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("deRegistered in " + Helper.getUserNameFromSipUri(severDesUri));
-                }
-                else{
+                } else {
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
                     boolean isOk = srvm.addServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("registered in " + Helper.getUserNameFromSipUri(severDesUri));
                 }
             }
-        } else{
+        } else {
             messageProcessor.processError("Previous message not sent: " + status);
         }
     }
@@ -434,7 +433,7 @@ class SipLayer implements SipListener {
 
                     break;
                 case Request.MESSAGE:
-                    if(Helper.getFailHeaderValue(req) == null){
+                    if (Helper.getFailHeaderValue(req) == null) {
                         try {
                             ListIterator viaListIter = req.getHeaders(ViaHeader.NAME);
                             ViaHeader firstVia = (ViaHeader) viaListIter.next();
@@ -477,9 +476,9 @@ class SipLayer implements SipListener {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }else{
+                    } else {
                         System.out.println("FAIL recieved");
-                        srvm.sendWithRouting(evt , this);
+                        srvm.sendWithRouting(evt, this);
                     }
 
 
@@ -489,7 +488,7 @@ class SipLayer implements SipListener {
 
                     break;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
 
         }
