@@ -339,9 +339,11 @@ class SipLayer implements SipListener {
                 if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)) {
 
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
+                    boolean isOk = srvm.removeServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("deRegistered in " + Helper.getUserNameFromSipUri(severDesUri));
                 } else {
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
+                    boolean isOk = srvm.addServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("registered in " + Helper.getUserNameFromSipUri(severDesUri));
                 }
             }
