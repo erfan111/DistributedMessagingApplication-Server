@@ -454,7 +454,7 @@ class SipLayer implements SipListener {
 
                                     //TODO: return error respone for routing
 
-                                    srvm.sendWithRouting(evt, this);
+                                    srvm.sendWithRouting(evt, this, false);
                                     System.out.println("no such client, dropping.... may need to waite for registering");
                                 }
                             } else {
@@ -468,7 +468,7 @@ class SipLayer implements SipListener {
                                     System.out.println("Sent directly to receiver");
                                 } else {
                                     // I don't know the receiver, I will send it to other servers
-                                    srvm.sendWithRouting(evt, this);
+                                    srvm.sendWithRouting(evt, this, false);
                                 }
                             }
 
@@ -477,7 +477,7 @@ class SipLayer implements SipListener {
                         }
                     } else {
                         System.out.println("FAIL recieved");
-                        srvm.sendWithRouting(evt, this);
+                        srvm.sendWithRouting(evt, this, true);
                     }
 
 

@@ -88,14 +88,14 @@ class serverManagement {
         return null;
     }
 
-    void sendWithRouting(RequestEvent evt, SipLayer sip) throws Exception {
+    void sendWithRouting(RequestEvent evt, SipLayer sip, boolean faildRecived) throws Exception {
         String toName = ((ToHeader) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getDisplayName();
-
-        if (clientCached.containsKey(toName)) {
-            System.out.println(clientCached.get(toName).toString());
-            sip.forwardMessage(evt, clientCached.get(toName), false);
-            return;
-        }
+        if (!faildRecived)
+            if (clientCached.containsKey(toName)) {
+                System.out.println(clientCached.get(toName).toString());
+                sip.forwardMessage(evt, clientCached.get(toName), false);
+                return;
+            }
 
         ArrayList<MyAddress> MyViaHeaders = Helper.getMyViaHeaderValue(evt);
 
