@@ -314,6 +314,8 @@ class SipLayer implements SipListener {
         //when send message we get response of send Request
         Response response = evt.getResponse();
         int status = response.getStatusCode();
+        FromHeader Sender = (FromHeader) response.getHeader(FromHeader.NAME);
+        String senderAddress = Helper.getAddressFromSipUri(Sender.getAddress().getURI().toString());
 
         if ((status >= 200) && (status < 300)) {
 
@@ -337,7 +339,6 @@ class SipLayer implements SipListener {
             } else {
 
                 if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)) {
-
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
                     boolean isOk = srvm.removeServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("deRegistered in " + Helper.getUserNameFromSipUri(severDesUri));
