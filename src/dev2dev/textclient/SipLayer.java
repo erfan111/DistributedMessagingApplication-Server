@@ -340,13 +340,12 @@ class SipLayer implements SipListener {
 
                 if (Helper.getHeaderValue(response.getHeader(SipRegister.RegisterHeader)).equals(SipRegister.ServerDeRegister)) {
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
+                    boolean isOk = srvm.removeServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
                     messageProcessor.processInfo("deRegistered in " + Helper.getUserNameFromSipUri(severDesUri));
                 } else {
                     String severDesUri = Helper.getHeaderValue(response.getHeader(Helper.ServerSource));
-                    if (!srvm.hasItem(Helper.getIpFromAddress(senderAddress),
-                            Integer.parseInt(Helper.getPortFromAddress(senderAddress)))) {
-                        messageProcessor.processInfo("registered in " + Helper.getUserNameFromSipUri(severDesUri));
-                    }
+                    boolean isOk = srvm.addServer(new MyAddress(Helper.getAddressFromSipUri(severDesUri)), messageProcessor);
+                    messageProcessor.processInfo("registered in " + Helper.getUserNameFromSipUri(severDesUri));
                 }
             }
         } else {
@@ -380,13 +379,11 @@ class SipLayer implements SipListener {
 
                             if (isOk) {
                                 System.out.println("server : registered the server");
-                                CallregisterRequest(Helper.getIpFromAddress(senderAddress) + ":" +
-                                        Helper.getPortFromAddress(senderAddress));
                             } else {
                                 System.out.println("server : already registered");
                             }
 
-//                            messageProcessor.processInfo("registered in " + Sender.getAddress().getDisplayName());
+                            messageProcessor.processInfo("registered in " + Sender.getAddress().getDisplayName());
                             createResponseForServerRegistered(evt, 200);
 
                             break;
@@ -398,13 +395,11 @@ class SipLayer implements SipListener {
 
                             if (isOk) {
                                 System.out.println("server : Deregistered the server");
-                                CallDeRegisterRequest(Helper.getIpFromAddress(senderAddress) + ":" +
-                                        Helper.getPortFromAddress(senderAddress));
                             } else {
                                 System.out.println("server : already Deregistered");
                             }
 
-//                            messageProcessor.processInfo("deRegistered in " + Sender.getAddress().getDisplayName());
+                            messageProcessor.processInfo("deRegistered in " + Sender.getAddress().getDisplayName());
                             createResponseForServerDeRegistered(evt, 200);
 
                             break;
@@ -459,7 +454,7 @@ class SipLayer implements SipListener {
 
                                     //TODO: return error respone for routing
 
-                                    srvm.sendWithRouting(evt, this);
+                                    srvm.sendWithRouting(evt, this, false);
                                     System.out.println("no such client, dropping.... may need to waite for registering");
                                 }
                             } else {
@@ -473,7 +468,7 @@ class SipLayer implements SipListener {
                                     System.out.println("Sent directly to receiver");
                                 } else {
                                     // I don't know the receiver, I will send it to other servers
-                                    srvm.sendWithRouting(evt, this);
+                                    srvm.sendWithRouting(evt, this, false);
                                 }
                             }
 
@@ -482,7 +477,7 @@ class SipLayer implements SipListener {
                         }
                     } else {
                         System.out.println("FAIL recieved");
-                        srvm.sendWithRouting(evt, this);
+                        srvm.sendWithRouting(evt, this, true);
                     }
 
 
